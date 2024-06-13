@@ -30,6 +30,10 @@ log_error() {
   echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Determine the default branch
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+log_info "Default branch is $DEFAULT_BRANCH"
+
 # Read the current version from the VERSION file
 if [ -f VERSION ]; then
   CURRENT_VERSION=$(cat VERSION)
@@ -64,11 +68,11 @@ git tag "v$VERSION"
 log_info "Tagged the commit with v$VERSION"
 
 # Push changes and tags
-git push origin main --tags
-log_info "Pushed changes and tags to origin/main"
+git push origin $DEFAULT_BRANCH --tags
+log_info "Pushed changes and tags to origin/$DEFAULT_BRANCH"
 
 # Push the VERSION file update
-git push origin main
+git push origin $DEFAULT_BRANCH
 log_info "Pushed the VERSION file update"
 
 log_info "Released version $VERSION"
