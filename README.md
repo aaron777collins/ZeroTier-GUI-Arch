@@ -20,7 +20,9 @@
    ```
 2. **Install dependencies**
 
-   This depends on your platform. For Arch, you may need to run ```bash
+   This depends on your platform. For Arch, you may need to run
+
+   ```bash
    sudo pacman -S tk
    ```
 3. **Run the application (Not Flatpak)**
