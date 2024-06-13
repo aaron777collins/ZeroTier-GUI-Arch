@@ -38,6 +38,15 @@ Follow the instructions on the [Flatpak website](https://flatpak.org/setup/) to 
    ```
 3. **Download the Flatpak package:**
    Download the latest release from the [releases page](https://github.com/aaron777collins/ZeroTier-GUI-Arch/releases).
+
+   Alternatively, you can use the following command to download the latest release:
+   ```bash
+   curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/main/download_latest_flatpak.sh | bash
+   ```
+   Or wget:
+   ```bash
+   wget -qO- https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/main/download_latest_flatpak.sh | bash
+   ```
 4. **Install the Flatpak package:**
    ```bash
    flatpak install --user path/to/zerotier-gui.flatpak
