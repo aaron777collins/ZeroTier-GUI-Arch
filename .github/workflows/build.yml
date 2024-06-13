@@ -30,9 +30,13 @@ jobs:
       run: |
         flatpak-builder --user --install --force-clean build-dir io.github.aaron777collins.zerotier-gui.yml
 
+    - name: Initialize Flatpak repository
+      run: |
+        flatpak build-export repo build-dir
+
     - name: Package Flatpak
       run: |
-        flatpak build-bundle build-dir repo io.github.aaron777collins.zerotier-gui zerotier-gui.flatpak
+        flatpak build-bundle repo zerotier-gui.flatpak io.github.aaron777collins.zerotier-gui
 
     - name: Create Release
       id: create_release
