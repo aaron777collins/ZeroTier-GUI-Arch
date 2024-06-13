@@ -30,21 +30,20 @@ fi
 
 echo "Successfully downloaded the latest Flatpak package: zerotier-gui.flatpak"
 
-# Ensure the necessary directories exist
-echo "Ensuring necessary directories exist..."
-mkdir -p /var/lib/flatpak/exports/share
-mkdir -p /home/$USER/.local/share/flatpak/exports/share
+# Ensure the necessary user-level directories exist
+echo "Ensuring necessary user-level directories exist..."
+mkdir -p "$HOME/.local/share/flatpak/exports/share"
 
-# Install the necessary runtime
+# Install the necessary runtime at the user level
 echo "Installing the necessary runtime..."
-flatpak install -y flathub org.freedesktop.Platform//22.08
+flatpak install --user -y flathub org.freedesktop.Platform//22.08
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to install the necessary runtime."
   exit 1
 fi
 
-# Install the Flatpak package
+# Install the Flatpak package at the user level
 echo "Installing the Flatpak package..."
 flatpak install --user --assumeyes zerotier-gui.flatpak
 
