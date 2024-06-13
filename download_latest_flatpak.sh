@@ -3,6 +3,7 @@
 # GitHub repository details
 GITHUB_USER="aaron777collins"
 GITHUB_REPO="ZeroTier-GUI-Arch"
+FLATPAK_ID="io.github.aaron777collins.zerotier-gui"
 
 # Fetch the latest release information from GitHub API
 echo "Fetching the latest release information from GitHub..."
@@ -28,3 +29,34 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Successfully downloaded the latest Flatpak package: zerotier-gui.flatpak"
+
+# Install the necessary runtime
+echo "Installing the necessary runtime..."
+flatpak install -y flathub org.freedesktop.Platform//22.08
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to install the necessary runtime."
+  exit 1
+fi
+
+# Install the Flatpak package
+echo "Installing the Flatpak package..."
+flatpak install --user --assumeyes zerotier-gui.flatpak
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to install the Flatpak package."
+  exit 1
+fi
+
+echo "Successfully installed the Flatpak package."
+
+# Run the Flatpak application
+echo "Launching the Flatpak application..."
+flatpak run $FLATPAK_ID
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to launch the Flatpak application."
+  exit 1
+fi
+
+echo "Flatpak application launched successfully."
