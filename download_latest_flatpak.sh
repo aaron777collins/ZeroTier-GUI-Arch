@@ -30,6 +30,11 @@ fi
 
 echo "Successfully downloaded the latest Flatpak package: zerotier-gui.flatpak"
 
+# Ensure the necessary directories exist
+echo "Ensuring necessary directories exist..."
+mkdir -p /var/lib/flatpak/exports/share
+mkdir -p /home/$USER/.local/share/flatpak/exports/share
+
 # Install the necessary runtime
 echo "Installing the necessary runtime..."
 flatpak install -y flathub org.freedesktop.Platform//22.08
