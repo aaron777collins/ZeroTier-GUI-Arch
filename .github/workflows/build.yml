@@ -32,7 +32,7 @@ jobs:
 
     - name: Package Flatpak
       run: |
-        flatpak build-bundle build-dir zerotier-gui.flatpak io.github.aaron777collins.zerotier-gui
+        flatpak build-bundle build-dir repo io.github.aaron777collins.zerotier-gui zerotier-gui.flatpak
 
     - name: Create Release
       id: create_release
