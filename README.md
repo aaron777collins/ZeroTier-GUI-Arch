@@ -1,7 +1,6 @@
-# ZeroTier-GUI <img src="img/zerotier-gui.png" align="bottom">
+# ZeroTier-GUI Arch <img src="img/zerotier-gui.png" align="bottom">
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat-square)](https://github.com/tralph3/ZeroTier-GUI/blob/master/LICENSE)
-[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=flat-square)](https://paypal.me/tralph3)
 
 **A Linux front-end for ZeroTier**
 
@@ -13,51 +12,39 @@
 <img src="img/managepeers.png " width="1000">
 
 # Installation
+1. **Clone the repository:**
 
-You can download the software from the [AUR](https://aur.archlinux.org/packages/zerotier-gui-git/).
+   ```bash
+   git clone https://github.com/aaron777collins/zerotier-gui.git
+   cd zerotier-gui
+   ```
+2. **Install dependencies**
 
-    paru -S zerotier-gui-git
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Run the application**
 
-If you are in an Ubuntu/Debian based distribution, you can download the source code and run the `make_deb.sh` script.
+   ```bash
+   python src/zerotier-gui.py
+    ```
 
-    ./make_deb.sh
+# Usage
 
-You may need to mark it as executable first:
+After launching the application, you can use the graphical interface to manage your ZeroTier networks and peers.
 
-    chmod +x make_deb.sh
+## Manage Networks
+* **Refresh Networks:** Refresh the list of joined networks.
+* **Join Network:** Join a new ZeroTier network by entering the network ID.
+* **Leave Network:** Leave a selected network.
+* **Network Info:** View detailed information about a selected network.
+* **Toggle Interface Connection:** Disconnect or connect the network interface.
+* **ZeroTier Central:** Open ZeroTier Central in your default web browser.
 
-**The script must be ran on the project's root folder, make sure to `cd` into it.**
-
-The script will generate a `ZeroTier-GUI.deb` package in the root directory. Simply install it with `sudo apt install ./ZeroTier-GUI.deb`.
-
-# Building binaries with Docker
-
-## Objective
-
-This alternative aims to make ZeroTier-GUI available for multiple platforms using immutable infrastructure benefits, to avoid unexpected results depending where you are running these commands above.
-
-## Setup
-
-- install docker
-- install Make (if not available)
-
-## How-to
-
-With Docker and Makefile available, you just need to run the following command:
-
-```
-make run
-```
-
-The expected result both ```rpm``` and ```deb``` files in project root. If you don't have Make available, you can run these commands line by line, as follows:
-
-```
-docker build . -t zero-tier-platforms-build:latest
-docker create -ti --rm --name zero-tier-platforms-build zero-tier-platforms-build bash
-docker cp zero-tier-platforms-build:/tmp/ZeroTier-GUI.deb ZeroTier-GUI.deb
-docker cp zero-tier-platforms-build:/tmp/ZeroTier-GUI.rpm ZeroTier-GUI.rpm
-docker rm -f zero-tier-platforms-build
-```
+## Manage Peers
+* **Show Peers:** View the list of peers in the network.
+* **Refresh Peers:** Refresh the list of peers.
+* **See Paths:** View the paths for a selected peer.
 
 # Dependencies
 

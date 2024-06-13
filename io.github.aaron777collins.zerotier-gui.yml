@@ -1,0 +1,27 @@
+app-id: io.github.aaron777collins.zerotier-gui
+runtime: org.freedesktop.Platform
+runtime-version: "22.08"
+sdk: org.freedesktop.Sdk
+command: zerotier-gui
+modules:
+  - name: zerotier-gui
+    buildsystem: simple
+    build-commands:
+      - install -D src/zerotier-gui.py /app/bin/zerotier-gui
+      - install -D requirements.txt /app/requirements.txt
+      - pip3 install --no-index --find-links="file://${PWD}" -r /app/requirements.txt --prefix=/app
+    sources:
+      - type: git
+        url: https://github.com/aaron777collins/zerotier-gui.git
+        tag: latest
+
+finish-args:
+  - --share=network
+  - --filesystem=host
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+  - --talk-name=org.freedesktop.Flatpak
+  - --system-talk-name=org.freedesktop.Flatpak
+  - --filesystem=~/.local/share/zerotier-gui
+  - --filesystem=/var/lib/zerotier-one:ro

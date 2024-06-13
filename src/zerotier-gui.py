@@ -34,6 +34,7 @@ from webbrowser import open_new_tab
 import sys
 from datetime import datetime
 import textwrap
+import os
 
 BACKGROUND = "#d9d9d9"
 FOREGROUND = "black"
@@ -1267,6 +1268,7 @@ def setup_auth_token():
 
 
 if __name__ == "__main__":
+    os.environ["FLATPAK_ID"] = "io.github.aaron777collins.zerotier-gui"
     # temporary window for popups
     tmp = tk.Tk()
     tmp.withdraw()

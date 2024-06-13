@@ -1,0 +1,53 @@
+name: Build and Release Flatpak
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Flatpak
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y flatpak-builder flatpak
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y python3-pip
+        pip3 install flathub
+
+    - name: Build Flatpak
+      run: |
+        flatpak-builder --user --install --force-clean build-dir io.github.aaron777collins.zerotier-gui.yml
+
+    - name: Package Flatpak
+      run: |
+        flatpak build-bundle build-dir zerotier-gui.flatpak io.github.aaron777collins.zerotier-gui
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Flatpak
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: zerotier-gui.flatpak
+        asset_name: zerotier-gui.flatpak
+        asset_content_type: application/vnd.flatpak
