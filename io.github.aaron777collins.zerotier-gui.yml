@@ -14,6 +14,19 @@ modules:
       - type: git
         url: https://github.com/aaron777collins/ZeroTier-GUI-Arch.git
         branch: master
+  - name: python-tkinter
+    buildsystem: simple
+    build-commands:
+      - ln -s /usr/lib/python3.9/tkinter /app/lib/python3.9/site-packages/tkinter
+      - ln -s /usr/lib/python3.9/lib-tk /app/lib/python3.9/site-packages/lib-tk
+    sources:
+      - type: shell
+        commands:
+          - |
+            if [ ! -d /usr/lib/python3.9/tkinter ]; then
+              echo "tkinter not found, installing..."
+              apt-get update && apt-get install -y python3-tk
+            fi
 
 finish-args:
   - --share=network
