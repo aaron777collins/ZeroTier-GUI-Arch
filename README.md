@@ -20,8 +20,8 @@
    ```
 2. **Install dependencies**
 
-   ```bash
-   pip install -r requirements.txt
+   This depends on your platform. For Arch, you may need to run ```bash
+   sudo pacman -S tk
    ```
 3. **Run the application**
 

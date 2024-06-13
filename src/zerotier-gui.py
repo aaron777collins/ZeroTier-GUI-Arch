@@ -2,6 +2,7 @@
 #
 # A Linux front-end for ZeroTier
 # Copyright (C) 2023  Tomás Ralph
+# Packaged by Aaron Collins
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
