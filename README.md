@@ -11,7 +11,7 @@
 ### Manage Peers
 <img src="img/managepeers.png " width="1000">
 
-# Installation
+# Installation (Source)
 1. **Clone the repository:**
 
    ```bash
@@ -23,13 +23,32 @@
    This depends on your platform. For Arch, you may need to run ```bash
    sudo pacman -S tk
    ```
-3. **Run the application**
+3. **Run the application (Not Flatpak)**
 
    ```bash
    python src/zerotier-gui.py
     ```
 
+# Installation (Flatpak)
+1. **Install Flatpak:**
+Follow the instructions on the [Flatpak website](https://flatpak.org/setup/) to install Flatpak for your distribution.
+2. **Add the Flathub repository:**
+   ```bash
+   flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+   ```
+3. **Download the Flatpak package:**
+   Download the latest release from the [releases page](https://github.com/aaron777collins/ZeroTier-GUI-Arch/releases).
+4. **Install the Flatpak package:**
+   ```bash
+   flatpak install --user path/to/zerotier-gui.flatpak
+   ```
+
 # Usage
+
+## Launching the Application
+```bash
+flatpak run io.github.aaron777collins.zerotier-gui
+```
 
 After launching the application, you can use the graphical interface to manage your ZeroTier networks and peers.
 
