@@ -12,7 +12,7 @@ modules:
       - pip3 install --no-index --find-links="file://${PWD}" -r /app/requirements.txt --prefix=/app
     sources:
       - type: git
-        url: https://github.com/aaron777collins/zerotier-gui.git
+        url: https://github.com/aaron777collins/ZeroTier-GUI-Arch.git
         tag: latest
 
 finish-args:
