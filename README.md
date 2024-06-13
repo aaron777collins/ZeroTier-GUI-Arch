@@ -32,22 +32,18 @@
 # Installation (Flatpak)
 1. **Install Flatpak:**
 Follow the instructions on the [Flatpak website](https://flatpak.org/setup/) to install Flatpak for your distribution.
-2. **Add the Flathub repository:**
-   ```bash
-   flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-   ```
-3. **Download the Flatpak package:**
+2. **Download the Flatpak package:**
    Download the latest release from the [releases page](https://github.com/aaron777collins/ZeroTier-GUI-Arch/releases).
 
    Alternatively, you can use the following command to download the latest release:
    ```bash
-   curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/main/download_latest_flatpak.sh | bash
+   curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_latest_flatpak.sh | bash
    ```
    Or wget:
    ```bash
-   wget -qO- https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/main/download_latest_flatpak.sh | bash
+   wget -qO- https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_latest_flatpak.sh | bash
    ```
-4. **Install the Flatpak package:**
+3. **Install the Flatpak package:**
    ```bash
    flatpak install --user path/to/zerotier-gui.flatpak
    ```
