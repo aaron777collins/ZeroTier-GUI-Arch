@@ -47,9 +47,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Install the Flatpak package at the user level
+# Install the Flatpak package from the downloaded file
 echo "Installing the Flatpak package..."
-flatpak install --user --assumeyes zerotier-gui.flatpak
+flatpak install --user --assumeyes ./zerotier-gui.flatpak
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to install the Flatpak package."
