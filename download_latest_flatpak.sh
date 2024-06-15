@@ -34,6 +34,10 @@ echo "Successfully downloaded the latest Flatpak package: zerotier-gui.flatpak"
 echo "Ensuring necessary user-level directories exist..."
 mkdir -p "$HOME/.local/share/flatpak/exports/share"
 
+# Add the Flathub remote for the user if not already added
+echo "Adding Flathub remote if not already added..."
+flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
 # Install the necessary runtime at the user level
 echo "Installing the necessary runtime..."
 flatpak install --user -y flathub org.freedesktop.Platform//22.08
