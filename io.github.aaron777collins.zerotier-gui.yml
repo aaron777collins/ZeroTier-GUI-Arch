@@ -5,6 +5,19 @@ sdk: org.gnome.Sdk
 command: zerotier-gui
 
 modules:
+  - name: gcc
+    buildsystem: simple
+    build-commands:
+      - apt-get update -y
+      - apt-get install -y gcc g++ make
+    sources:
+      - type: archive
+        url: http://deb.debian.org/debian/pool/main/g/gcc-defaults/gcc_10.2.0-1_amd64.deb
+        sha256: c4eb70b1159d6a2a15de354d1ef11c0987875f4b4a8c223bd94654536ad3c7ad
+      - type: archive
+        url: http://deb.debian.org/debian/pool/main/g/gcc-defaults/g++_10.2.0-1_amd64.deb
+        sha256: dfeb0e1f8fa6a93b4d978b50d058d2478c1b3c4c27671f0c140d49c623d3f44e
+
   - name: python3
     buildsystem: simple
     build-commands:

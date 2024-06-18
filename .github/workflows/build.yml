@@ -16,7 +16,7 @@ jobs:
     - name: Set up Flatpak
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y flatpak flatpak-builder
+        sudo apt-get install -y flatpak flatpak-builder gcc g++ make
 
     - name: Add Flathub remote for user
       run: |
