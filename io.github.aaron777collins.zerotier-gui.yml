@@ -2,23 +2,31 @@ app-id: io.github.aaron777collins.zerotier-gui
 runtime: org.freedesktop.Platform
 runtime-version: "22.08"
 sdk: org.freedesktop.Sdk
-sdk-extensions:
-  - org.freedesktop.Sdk.Extension.python3
 command: zerotier-gui
 
 modules:
-  - name: tk
-    buildsystem: meson
-    sources:
-      - type: archive
-        url: https://prdownloads.sourceforge.net/tcl/tk8.6.12-src.tar.gz
-        sha256: 12395c1f3fcb6bed2938689f797ea3cdf41ed5cb6c4766eec8ac949560310630
   - name: tcl
     buildsystem: meson
     sources:
       - type: archive
         url: https://prdownloads.sourceforge.net/tcl/tcl8.6.12-src.tar.gz
         sha256: 26c995dd0f167e48b11961d891ee555f680c175f7173ff8cb829f4ebcde4c1a6
+
+  - name: tk
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://prdownloads.sourceforge.net/tcl/tk8.6.12-src.tar.gz
+        sha256: 12395c1f3fcb6bed2938689f797ea3cdf41ed5cb6c4766eec8ac949560310630
+
+  - name: python3
+    buildsystem: simple
+    build-commands:
+      - pip3 install --prefix=/app .
+    sources:
+      - type: archive
+        url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tar.xz
+        sha256: 4a69025c94cb39046c61b9d4f3b5baffc2c14408d5e98f1f58f8beeb4af30814
 
   - name: zerotier-gui
     buildsystem: simple
@@ -44,3 +52,5 @@ finish-args:
   - --env=PYTHONPATH=/app/lib/python3.10/site-packages
   - --env=PYTHONHOME=/app
   - --env=PYTHONUNBUFFERED=1
+  - --env=PYTHONNOUSERSITE=1
+  - --env=PYTHONEXECUTABLE=/app/bin/python3
