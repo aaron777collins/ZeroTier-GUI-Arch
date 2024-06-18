@@ -5,6 +5,15 @@ sdk: org.freedesktop.Sdk
 command: zerotier-gui
 
 modules:
+  - name: python3
+    buildsystem: simple
+    build-commands:
+      - pip3 install --prefix=/app .
+    sources:
+      - type: archive
+        url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tar.xz
+        sha256: 80bf925f571da436b35210886cf79f6eb5fa5d6c571316b73568343451f77a19
+
   - name: tkinter
     buildsystem: simple
     build-commands:
@@ -63,3 +72,5 @@ finish-args:
   - --env=PYTHONPATH=/app/lib/python3.10/site-packages
   - --env=PYTHONHOME=/app
   - --env=PYTHONUNBUFFERED=1
+  - --env=PYTHONNOUSERSITE=1
+  - --env=PYTHONEXECUTABLE=/app/bin/python3
