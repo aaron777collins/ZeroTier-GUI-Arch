@@ -26,7 +26,7 @@ modules:
     sources:
       - type: archive
         url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tar.xz
-        sha256: 4a69025c94cb39046c61b9d4f3b5baffc2c14408d5e98f1f58f8beeb4af30814
+        sha256: 80bf925f571da436b35210886cf79f6eb5fa5d6c571316b73568343451f77a19
 
   - name: zerotier-gui
     buildsystem: simple
