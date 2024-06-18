@@ -8,7 +8,9 @@ modules:
   - name: python3
     buildsystem: simple
     build-commands:
-      - pip3 install --prefix=/app .
+      - ./configure --prefix=/app --enable-shared --with-system-ffi --with-ensurepip=install
+      - make
+      - make install
     sources:
       - type: archive
         url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tgz
