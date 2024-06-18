@@ -1,10 +1,21 @@
 app-id: io.github.aaron777collins.zerotier-gui
 runtime: org.gnome.Platform
-runtime-version: "46"
+runtime-version: "45"
 sdk: org.gnome.Sdk
 command: zerotier-gui
 
 modules:
+  - name: python3
+    buildsystem: simple
+    build-commands:
+      - ./configure --prefix=/app
+      - make
+      - make install
+    sources:
+      - type: archive
+        url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tgz
+        sha256: f3bcc65b1d5f1dc78675c746c98fcee823c038168fc629c5935b044d0911ad28
+
   - "python3-tkinter.yaml"
   - name: zerotier-gui
     buildsystem: simple
@@ -27,7 +38,7 @@ finish-args:
   - --system-talk-name=org.freedesktop.Flatpak
   - --filesystem=~/.local/share/zerotier-gui
   - --filesystem=/var/lib/zerotier-one:ro
-  - --env=PYTHONPATH=/app/lib/python3.10/site-packages
+  - --env=PYTHONPATH=/app/lib/python3.10/site-packages:/app/lib/python3.10
   - --env=PYTHONHOME=/app
   - --env=PYTHONUNBUFFERED=1
   - --env=PYTHONNOUSERSITE=1
