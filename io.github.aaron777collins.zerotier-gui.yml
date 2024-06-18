@@ -4,6 +4,18 @@ runtime-version: "22.08"
 sdk: org.freedesktop.Sdk
 command: zerotier-gui
 modules:
+  - name: gcc
+    buildsystem: simple
+    build-commands:
+      - sudo dnf install gcc -y
+      - sudo dnf install make -y
+      - sudo dnf install cmake -y
+      - sudo dnf install g++ -y
+    sources:
+      - type: archive
+        url: https://ftp.gnu.org/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.gz
+        sha256: b8dd2b221c33314633a08a2792bfe20ef3c6a964ef15dfffb198049af3bd29f6
+
   - name: tkinter
     buildsystem: simple
     build-commands:
@@ -49,6 +61,7 @@ modules:
               project-id: 11426
               stable-only: true
               url-template: https://prdownloads.sourceforge.net/tcl/tk$version-src.tar.gz
+
   - name: zerotier-gui
     buildsystem: simple
     build-commands:
