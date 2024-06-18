@@ -5,10 +5,38 @@ sdk: org.gnome.Sdk
 command: zerotier-gui
 
 modules:
+  - name: tcl
+    buildsystem: autotools
+    subdir: unix
+    post-install:
+      - chmod 755 /app/lib/libtcl*.so
+    cleanup:
+      - /bin
+      - /lib/pkgconfig
+      - /man
+    sources:
+      - type: archive
+        url: https://prdownloads.sourceforge.net/tcl/tcl8.6.14-src.tar.gz
+        sha256: 5880225babf7954c58d4fb0f5cf6279104ce1cd6aa9b71e9a6322540e1c4de66
+
+  - name: tk
+    buildsystem: autotools
+    subdir: unix
+    post-install:
+      - chmod 755 /app/lib/libtk*.so
+    cleanup:
+      - /bin
+      - /lib/pkgconfig
+      - /man
+    sources:
+      - type: archive
+        url: https://prdownloads.sourceforge.net/tcl/tk8.6.14-src.tar.gz
+        sha256: 8ffdb720f47a6ca6107eac2dd877e30b0ef7fac14f3a84ebbd0b3612cee41a94
+
   - name: python3
     buildsystem: simple
     build-commands:
-      - ./configure --prefix=/app
+      - ./configure --prefix=/app --with-tcltk-includes="-I/app/include" --with-tcltk-libs="-L/app/lib -ltcl8.6 -ltk8.6"
       - make
       - make install
     sources:
@@ -16,7 +44,6 @@ modules:
         url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tgz
         sha256: f3bcc65b1d5f1dc78675c746c98fcee823c038168fc629c5935b044d0911ad28
 
-  # - "python3-tkinter.yaml"
   - name: zerotier-gui
     buildsystem: simple
     build-commands:
