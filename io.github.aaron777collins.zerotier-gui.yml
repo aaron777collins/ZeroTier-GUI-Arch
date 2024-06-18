@@ -1,37 +1,11 @@
 app-id: io.github.aaron777collins.zerotier-gui
-runtime: org.freedesktop.Platform
-runtime-version: "22.08"
-sdk: org.freedesktop.Sdk
+runtime: org.gnome.Platform
+runtime-version: "46"
+sdk: org.gnome.Sdk
 command: zerotier-gui
 
 modules:
-  - name: tcl
-    buildsystem: simple
-    build-commands:
-      - cd unix && ./configure --prefix=/app && make && make install
-    sources:
-      - type: archive
-        url: https://prdownloads.sourceforge.net/tcl/tcl8.6.12-src.tar.gz
-        sha256: 26c995dd0f167e48b11961d891ee555f680c175f7173ff8cb829f4ebcde4c1a6
-
-  - name: tk
-    buildsystem: simple
-    build-commands:
-      - cd unix && ./configure --prefix=/app --with-tcl=/app/lib && make && make install
-    sources:
-      - type: archive
-        url: https://prdownloads.sourceforge.net/tcl/tk8.6.12-src.tar.gz
-        sha256: 12395c1f3fcb6bed2938689f797ea3cdf41ed5cb6c4766eec8ac949560310630
-
-  - name: python3
-    buildsystem: simple
-    build-commands:
-      - pip3 install --prefix=/app .
-    sources:
-      - type: archive
-        url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tar.xz
-        sha256: 80bf925f571da436b35210886cf79f6eb5fa5d6c571316b73568343451f77a19
-
+  - "python3-tkinter.yaml"
   - name: zerotier-gui
     buildsystem: simple
     build-commands:
