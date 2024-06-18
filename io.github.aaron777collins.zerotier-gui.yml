@@ -8,14 +8,8 @@ modules:
   - name: gcc
     buildsystem: simple
     build-commands:
-      - sudo dnf install gcc -y
-      - sudo dnf install make -y
-      - sudo dnf install cmake -y
-      - sudo dnf install g++ -y
-    sources:
-      - type: archive
-        url: https://ftp.gnu.org/gnu/gcc/gcc-11.1.0/gcc-11.1.0.tar.gz
-        sha256: e7abb1b4cb58aaa67c5eb49d98e89d13363b8e258ac2b5b105c197b441c09f85
+      - flatpak-builder --install-deps-from=flathub --install gcc make cmake g++
+
 
   - name: tkinter
     buildsystem: simple
