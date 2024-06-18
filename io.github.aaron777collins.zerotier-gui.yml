@@ -6,14 +6,18 @@ command: zerotier-gui
 
 modules:
   - name: tcl
-    buildsystem: meson
+    buildsystem: simple
+    build-commands:
+      - cd unix && ./configure --prefix=/app && make && make install
     sources:
       - type: archive
         url: https://prdownloads.sourceforge.net/tcl/tcl8.6.12-src.tar.gz
         sha256: 26c995dd0f167e48b11961d891ee555f680c175f7173ff8cb829f4ebcde4c1a6
 
   - name: tk
-    buildsystem: meson
+    buildsystem: simple
+    build-commands:
+      - cd unix && ./configure --prefix=/app --with-tcl=/app/lib && make && make install
     sources:
       - type: archive
         url: https://prdownloads.sourceforge.net/tcl/tk8.6.12-src.tar.gz
@@ -54,3 +58,4 @@ finish-args:
   - --env=PYTHONUNBUFFERED=1
   - --env=PYTHONNOUSERSITE=1
   - --env=PYTHONEXECUTABLE=/app/bin/python3
+  - --env=LD_LIBRARY_PATH=/app/lib
