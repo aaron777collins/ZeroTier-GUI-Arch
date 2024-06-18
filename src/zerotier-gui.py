@@ -27,10 +27,11 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from subprocess import check_output, STDOUT, CalledProcessError
+from subprocess import PIPE, Popen, check_output, STDOUT, CalledProcessError
 import json
 from json import JSONDecodeError
 from os import getuid, system, _exit, path, makedirs
+from tkinter import simpledialog
 from webbrowser import open_new_tab
 import sys
 from datetime import datetime
@@ -1267,12 +1268,24 @@ def setup_auth_token():
         )
     _exit(0)
 
+def prompt_sudo_password():
+    return simpledialog.askstring("Sudo Password", "Enter your sudo password:", show='*')
+
+def run_command(command):
+    command = ['sudo', '-S'] + command
+    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd="/home/deck/.zerotier-one")
+    stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
+    if process.returncode != 0:
+        raise CalledProcessError(process.returncode, command, output=stdout)
+    return stdout.decode()
 
 if __name__ == "__main__":
     os.environ["FLATPAK_ID"] = "io.github.aaron777collins.zerotier-gui"
     # temporary window for popups
     tmp = tk.Tk()
     tmp.withdraw()
+
+    SUDO_PASSWORD = prompt_sudo_password()
 
     # simple check for zerotier
     while True:
