@@ -192,9 +192,7 @@ class MainWindow:
         self.update_service_label()
 
     def get_service_status(self):
-        data = check_output(
-            ["systemctl", "show", "zerotier-one"], universal_newlines=True
-        ).split("\n")
+        data = manage_service("show").split("\n")
         formatted_data = {}
         for entry in data:
             key_value = entry.split("=", 1)
@@ -335,10 +333,10 @@ class MainWindow:
                 return network["name"]
 
     def get_networks_info(self):
-        return json.loads(check_output(["zerotier-cli", "-j", "listnetworks"]))
+        return json.loads(run_zerotier_cli("-j", "listnetworks"))
 
     def get_peers_info(self):
-        return json.loads(check_output(["zerotier-cli", "-j", "peers"]))
+        return json.loads(run_zerotier_cli("-j", "peers"))
 
     def launch_sub_window(self, title):
         subWindow = tk.Toplevel(self.window, class_="zerotier-gui")
@@ -419,7 +417,7 @@ class MainWindow:
                         icon="info", message=join_result, parent=join_window
                     )
                     return
-                check_output(["zerotier-cli", "join", network_id])
+                run_zerotier_cli("join", network_id)
                 join_result = "Successfully joined network"
                 self.add_network_to_history(network_id)
                 messagebox.showinfo(
@@ -609,7 +607,7 @@ class MainWindow:
         )
         if answer:
             try:
-                check_output(["zerotier-cli", "leave", network])
+                run_zerotier_cli("leave", network)
                 leaveResult = "Successfully left network"
             except CalledProcessError:
                 leaveResult = "Error"
@@ -619,7 +617,7 @@ class MainWindow:
         self.refresh_networks()
 
     def get_status(self):
-        status = check_output(["zerotier-cli", "status"]).decode()
+        status = run_zerotier_cli("status").decode()
         status = status.split()
         return status
 
@@ -714,7 +712,7 @@ class MainWindow:
 
     def get_interface_state(self, interface):
         interfaceInfo = json.loads(
-            check_output(["ip", "--json", "address"]).decode()
+            run_zerotier_cli("ip", "--json", "address").decode()
         )
         for info in interfaceInfo:
             if info["ifname"] == interface:
@@ -1155,14 +1153,11 @@ class MainWindow:
             # zerotier-cli only accepts int values
             value = int(value)
             try:
-                check_output(
-                    [
-                        "zerotier-cli",
+                run_zerotier_cli(
                         "set",
                         currentNetworkInfo["id"],
                         f"{config}={value}",
-                    ],
-                    stderr=STDOUT,
+                    stderr_to_stdout=True,
                 )
             except CalledProcessError as error:
                 error = error.output.decode().strip()
@@ -1211,10 +1206,7 @@ class TreeView(ttk.Treeview):
 
 
 def manage_service(action):
-    if action == "start":
-        check_output(["systemctl", "start", "zerotier-one"])
-    elif action == "stop":
-        check_output(["systemctl", "stop", "zerotier-one"])
+    return run_command(["systemctl", action, "zerotier-one"])
 
 
 def setup_auth_token():
@@ -1279,6 +1271,15 @@ def run_command(command):
         raise CalledProcessError(process.returncode, command, output=stdout)
     return stdout.decode()
 
+def run_zerotier_cli(*args, stderr_to_stdout=False):
+    command = ['sudo', '-S', './zerotier-cli', '-D/home/deck/.zerotier-one'] + list(args)
+    stderr = STDOUT if stderr_to_stdout else PIPE
+    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd="/home/deck/.zerotier-one")
+    stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
+    if process.returncode != 0:
+        raise CalledProcessError(process.returncode, command, output=stdout)
+    return stdout.decode()
+
 if __name__ == "__main__":
     os.environ["FLATPAK_ID"] = "io.github.aaron777collins.zerotier-gui"
     # temporary window for popups
@@ -1290,7 +1291,7 @@ if __name__ == "__main__":
     # simple check for zerotier
     while True:
         try:
-            check_output(["zerotier-cli", "listnetworks"], stderr=STDOUT)
+            run_zerotier_cli("listnetworks")
         # in case the command throws an error
         except CalledProcessError as error:
             # no zerotier authtoken
