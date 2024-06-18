@@ -60,6 +60,6 @@ finish-args:
   - --system-talk-name=org.freedesktop.Flatpak
   - --filesystem=~/.local/share/zerotier-gui
   - --filesystem=/var/lib/zerotier-one:ro
-  - --env=PYTHONPATH=/app/lib/python3.9/site-packages
+  - --env=PYTHONPATH=/app/lib/python3.10/site-packages
   - --env=PYTHONHOME=/app
   - --env=PYTHONUNBUFFERED=1
