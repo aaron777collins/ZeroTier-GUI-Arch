@@ -24,7 +24,7 @@ jobs:
 
     - name: Install GNOME SDK and Platform
       run: |
-        flatpak install -y flathub org.gnome.Platform/x86_64/45 flathub org.gnome.Sdk/x86_64/45
+        flatpak install -y flathub org.gnome.Platform/x86_64/46 flathub org.gnome.Sdk/x86_64/46
 
     - name: Build Flatpak
       run: |

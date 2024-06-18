@@ -1,7 +1,7 @@
 name: tkinter
 buildsystem: simple
 build-commands:
-  - pip3 install --prefix=${FLATPAK_DEST} .
+  - flatpak-spawn --host pip3 install --prefix=${FLATPAK_DEST} .
 sources:
   - type: git
     url: https://github.com/iwalton3/tkinter-standalone
@@ -11,7 +11,7 @@ modules:
     buildsystem: autotools
     subdir: unix
     post-install:
-      - chmod 755 /app/lib/libtcl*.so
+      - flatpak-spawn --host chmod 755 /app/lib/libtcl*.so
     cleanup:
       - /bin
       - /lib/pkgconfig
@@ -24,7 +24,7 @@ modules:
     buildsystem: autotools
     subdir: unix
     post-install:
-      - chmod 755 /app/lib/libtk*.so
+      - flatpak-spawn --host chmod 755 /app/lib/libtk*.so
     cleanup:
       - /bin
       - /lib/pkgconfig

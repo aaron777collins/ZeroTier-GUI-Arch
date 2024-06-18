@@ -1,6 +1,6 @@
 app-id: io.github.aaron777collins.zerotier-gui
 runtime: org.gnome.Platform
-runtime-version: "45"
+runtime-version: "46"
 sdk: org.gnome.Sdk
 command: zerotier-gui
 
@@ -8,9 +8,9 @@ modules:
   - name: python3
     buildsystem: simple
     build-commands:
-      - ./configure --prefix=/app --enable-shared --with-system-ffi --with-ensurepip=install
-      - make
-      - make install
+      - flatpak-spawn --host ./configure --prefix=/app --enable-shared --with-system-ffi --with-ensurepip=install
+      - flatpak-spawn --host make
+      - flatpak-spawn --host make install
     sources:
       - type: archive
         url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tgz
@@ -23,7 +23,7 @@ modules:
     build-commands:
       - install -D src/zerotier-gui.py /app/bin/zerotier-gui
       - install -D requirements.txt /app/requirements.txt
-      - pip3 install --no-index --find-links="file://${PWD}" -r /app/requirements.txt --prefix=/app
+      - flatpak-spawn --host pip3 install --no-index --find-links="file://${PWD}" -r /app/requirements.txt --prefix=/app
     sources:
       - type: git
         url: https://github.com/aaron777collins/ZeroTier-GUI-Arch.git
