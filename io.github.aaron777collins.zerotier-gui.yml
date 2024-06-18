@@ -5,11 +5,14 @@ sdk: org.freedesktop.Sdk
 command: zerotier-gui
 
 modules:
-  - name: gcc
+  - name: python
     buildsystem: simple
     build-commands:
-      - flatpak-builder --install-deps-from=flathub --install gcc make cmake g++
-
+      - pip3 install --prefix=/app .
+    sources:
+      - type: archive
+        url: https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tar.xz
+        sha256: f8145616e68c00041d1a6399b76387390388f8359581abc24432bb969b5e3c57
 
   - name: tkinter
     buildsystem: simple
