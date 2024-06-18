@@ -4,6 +4,22 @@ runtime-version: "22.08"
 sdk: org.freedesktop.Sdk
 command: zerotier-gui
 modules:
+  - name: tkinter
+    buildsystem: simple
+    build-commands:
+      - pip3 install --prefix=${FLATPAK_DEST} .
+    sources:
+      - type: git
+        url: https://github.com/iwalton3/tkinter-standalone
+        commit: ba946536054f9d27a08aafde21aa18330ce05729
+    modules:
+      - name: tcl
+        buildsystem: autotools
+        subdir: unix
+        post-install:
+          - chmod 755 /app/lib/libtcl*.so
+        cleanup:
+          - /bin
   - name: zerotier-gui
     buildsystem: simple
     build-commands:
