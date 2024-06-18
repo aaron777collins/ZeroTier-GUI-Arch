@@ -16,7 +16,7 @@ modules:
         url: https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tgz
         sha256: f3bcc65b1d5f1dc78675c746c98fcee823c038168fc629c5935b044d0911ad28
 
-  - "python3-tkinter.yaml"
+  # - "python3-tkinter.yaml"
   - name: zerotier-gui
     buildsystem: simple
     build-commands:
