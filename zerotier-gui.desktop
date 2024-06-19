@@ -1,6 +1,6 @@
 [Desktop Entry]
 Encoding=UTF-8
-Exec=/usr/bin/zerotier-gui
+Exec=flatpak run io.github.aaron777collins.zerotier-gui
 Icon=zerotier-gui
 Type=Application
 Terminal=false
@@ -10,4 +10,4 @@ GenericName=ZeroTier GUI
 StartupWMClass=zerotier-gui
 StartupNotify=false
 Categories=Utility;
-Version=1.4.0
+Version=0.0.81
