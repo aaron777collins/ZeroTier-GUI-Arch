@@ -1287,7 +1287,7 @@ if __name__ == "__main__":
     # while loop, forcing the user to give a proper sudo password
     while True:
         try:
-            run_command(["echo 'test' > /dev/null"])
+            run_command(["true"])
             break
         except CalledProcessError:
             SUDO_PASSWORD = prompt_sudo_password()
