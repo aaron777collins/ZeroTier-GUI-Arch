@@ -739,15 +739,15 @@ class MainWindow:
         state = self.get_interface_state(currentNetworkInterface)
 
         if state.lower() == "down":
-            run_command("pkexec", "ip", "link", "set", currentNetworkInterface, "up")
+            run_command(["pkexec", "ip", "link", "set", currentNetworkInterface, "up"])
         else:
             run_command(
-                    "pkexec",
+                    ["pkexec",
                     "ip",
                     "link",
                     "set",
                     currentNetworkInterface,
-                    "down"
+                    "down"]
             )
 
         self.refresh_networks()
@@ -1225,7 +1225,7 @@ def setup_auth_token():
             manage_service("start")
         else:
             _exit(0)
-    username = run_command("whoami").decode().strip() # may want to modify this to not use sudo
+    username = run_command(["whoami"]).decode().strip() # may want to modify this to not use sudo
     allowed_to_run_as_root = messagebox.askyesno(
         icon="info",
         title="Root access needed",
@@ -1287,7 +1287,7 @@ if __name__ == "__main__":
     # while loop, forcing the user to give a proper sudo password
     while True:
         try:
-            run_command("echo 'test' > /dev/null")
+            run_command(["echo 'test' > /dev/null"])
             break
         except CalledProcessError:
             SUDO_PASSWORD = prompt_sudo_password()
