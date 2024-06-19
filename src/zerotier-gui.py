@@ -37,6 +37,7 @@ import sys
 from datetime import datetime
 import textwrap
 import os
+import pwd
 
 BACKGROUND = "#d9d9d9"
 FOREGROUND = "black"
@@ -1267,13 +1268,17 @@ def setup_auth_token():
 def prompt_sudo_password():
     return simpledialog.askstring("Sudo Password", "Enter your sudo password:", show='*')
 
+def get_user():
+    return pwd.getpwuid(os.getuid())[0]
+
 def run_command(command):
     command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
     process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd="/home/deck/.zerotier-one")
     stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
     if process.returncode != 0:
         raise CalledProcessError(process.returncode, command, output=stdout)
-    return stdout.decode()
+    # Strip [sudo] password for <user>: from stdout
+    return stdout.decode().replace(f"[sudo] password for {get_user()}: ", "")
 
 def run_zerotier_cli(*args, stderr_to_stdout=False):
     command = ['flatpak-spawn', '--host', 'sudo', '-S', './zerotier-cli', '-D/home/deck/.zerotier-one'] + list(args)
