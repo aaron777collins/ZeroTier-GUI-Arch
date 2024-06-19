@@ -1214,7 +1214,7 @@ def manage_service(action):
 
     # try as user
     try:
-        return run_command(["systemctl", "--user", action, "zerotier-one"])
+        return run_command(["systemctl", "--user", action, "zerotier-one"], use_sudo=False)
     except CalledProcessError:
         # try as system
         try:
