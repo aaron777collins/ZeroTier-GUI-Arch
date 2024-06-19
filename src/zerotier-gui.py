@@ -337,7 +337,7 @@ class MainWindow:
         print(res)
         resj = json.loads(res)
         print(resj)
-        return jresj
+        return resj
 
     def get_peers_info(self):
         return json.loads(run_zerotier_cli("-j", "peers"))
