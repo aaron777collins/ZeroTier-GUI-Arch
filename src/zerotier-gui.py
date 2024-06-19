@@ -334,9 +334,9 @@ class MainWindow:
 
     def get_networks_info(self):
         res = run_zerotier_cli("-j", "listnetworks")
-        print(res)
+        # print(res)
         resj = json.loads(res)
-        print(resj)
+        # print(resj)
         return resj
 
     def get_peers_info(self):
@@ -716,7 +716,7 @@ class MainWindow:
 
     def get_interface_state(self, interface):
         interfaceInfo = json.loads(
-            run_zerotier_cli("ip", "--json", "address")).decode()
+            run_command(["ip", "--json", "address"])).decode()
         for info in interfaceInfo:
             if info["ifname"] == interface:
                 state = info["operstate"]
