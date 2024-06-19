@@ -5,6 +5,14 @@ GITHUB_USER="aaron777collins"
 GITHUB_REPO="ZeroTier-GUI-Arch"
 FLATPAK_ID="io.github.aaron777collins.zerotier-gui"
 
+# Function to clean up weird characters
+cleanup_console() {
+  echo -e "\033[0m" # Reset console formatting
+}
+
+# Trap to cleanup console on exit
+trap cleanup_console EXIT
+
 # Fetch the latest release information from GitHub API
 echo "Fetching the latest release information from GitHub..."
 release_info=$(curl -s "https://api.github.com/repos/$GITHUB_USER/$GITHUB_REPO/releases/latest")
@@ -58,13 +66,32 @@ fi
 
 echo "Successfully installed the Flatpak package."
 
-# Run the Flatpak application
-echo "Launching the Flatpak application..."
-flatpak run $FLATPAK_ID
-
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to launch the Flatpak application."
-  exit 1
+# Get the version from the VERSION file
+if [ -f VERSION ]; then
+  VERSION=$(cat VERSION)
+else
+  VERSION="0.0.82"
 fi
 
-echo "Flatpak application launched successfully."
+# Create/update the desktop file
+DESKTOP_FILE="$HOME/Desktop/ZeroTier-GUI.desktop"
+echo "Creating/updating the desktop file at $DESKTOP_FILE..."
+cat <<EOF > "$DESKTOP_FILE"
+[Desktop Entry]
+Encoding=UTF-8
+Exec=flatpak run io.github.aaron777collins.zerotier-gui
+Icon=zerotier-gui
+Type=Application
+Terminal=false
+Comment=Linux front-end for ZeroTier
+Name=ZeroTier GUI
+GenericName=ZeroTier GUI
+StartupWMClass=zerotier-gui
+StartupNotify=false
+Categories=Utility;
+Version=$VERSION
+EOF
+
+echo "Desktop file created/updated successfully at $DESKTOP_FILE."
+
+cleanup_console
