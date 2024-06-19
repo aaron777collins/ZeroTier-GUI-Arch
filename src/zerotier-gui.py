@@ -717,8 +717,9 @@ class MainWindow:
     def get_interface_state(self, interface):
         res = run_command(["ip", "--json", "address"])
         print(res)
-        decoderes = res.decode()
-        jres = json.loads(decoderes)
+        sres = res.strip()
+        print(sres)
+        jres = json.loads(sres)
         print(jres)
         interfaceInfo = jres
         for info in interfaceInfo:
