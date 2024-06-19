@@ -1220,11 +1220,10 @@ def manage_service(action):
         try:
             return run_command(["systemctl", action, "zerotier-one"])
         except CalledProcessError as error:
-            error = error.output.strip()
+            error = error.output.decode().strip()
             messagebox.showinfo(
                 title="Error", message=f'Error: "{error}"', icon="error"
             )
-            _exit(1)
 
 def setup_auth_token():
     if getuid() == 0:
@@ -1283,14 +1282,22 @@ def prompt_sudo_password():
 def get_user():
     return pwd.getpwuid(os.getuid())[0]
 
-def run_command(command):
-    command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
-    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd="/home/deck/.zerotier-one")
-    stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
+def run_command(command, use_sudo=True):
+    if use_sudo:
+        command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd="/home/deck/.zerotier-one")
+        stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
+    else:
+        command = ['flatpak-spawn', '--host'] + command
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd="/home/deck/.zerotier-one")
+        stdout, stderr = process.communicate()
+
     if process.returncode != 0:
         raise CalledProcessError(process.returncode, command, output=stdout)
+
     # Strip [sudo] password for <user>: from stdout
     return stdout.decode().replace(f"[sudo] password for {get_user()}: ", "")
+
 
 def run_zerotier_cli(*args, stderr_to_stdout=False):
     command = ['flatpak-spawn', '--host', 'sudo', '-S', './zerotier-cli', '-D/home/deck/.zerotier-one'] + list(args)

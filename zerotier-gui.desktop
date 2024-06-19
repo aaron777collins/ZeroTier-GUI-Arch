@@ -10,4 +10,4 @@ GenericName=ZeroTier GUI
 StartupWMClass=zerotier-gui
 StartupNotify=false
 Categories=Utility;
-Version=0.0.81
+Version=0.0.82
