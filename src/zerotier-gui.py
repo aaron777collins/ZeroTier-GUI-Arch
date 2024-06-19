@@ -333,7 +333,11 @@ class MainWindow:
                 return network["name"]
 
     def get_networks_info(self):
-        return json.loads(run_zerotier_cli("-j", "listnetworks"))
+        res = run_zerotier_cli("-j", "listnetworks")
+        print(res)
+        resj = json.loads(res)
+        print(resj)
+        return jresj
 
     def get_peers_info(self):
         return json.loads(run_zerotier_cli("-j", "peers"))
