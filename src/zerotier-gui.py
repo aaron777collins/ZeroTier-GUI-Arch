@@ -1211,8 +1211,20 @@ class TreeView(ttk.Treeview):
 
 
 def manage_service(action):
-    return run_command(["systemctl", action, "zerotier-one"])
 
+    # try as user
+    try:
+        return run_command(["systemctl", "--user", action, "zerotier-one"])
+    except CalledProcessError:
+        # try as system
+        try:
+            return run_command(["systemctl", action, "zerotier-one"])
+        except CalledProcessError as error:
+            error = error.output.strip()
+            messagebox.showinfo(
+                title="Error", message=f'Error: "{error}"', icon="error"
+            )
+            _exit(1)
 
 def setup_auth_token():
     if getuid() == 0:
