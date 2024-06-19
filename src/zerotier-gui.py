@@ -712,8 +712,7 @@ class MainWindow:
 
     def get_interface_state(self, interface):
         interfaceInfo = json.loads(
-            run_zerotier_cli("ip", "--json", "address").decode()
-        )
+            run_zerotier_cli("ip", "--json", "address")).decode()
         for info in interfaceInfo:
             if info["ifname"] == interface:
                 state = info["operstate"]
