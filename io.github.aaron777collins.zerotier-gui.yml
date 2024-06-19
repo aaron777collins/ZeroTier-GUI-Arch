@@ -71,3 +71,8 @@ finish-args:
   - --env=PYTHONNOUSERSITE=1
   - --env=PYTHONEXECUTABLE=/app/bin/python3
   - --env=LD_LIBRARY_PATH=/app/lib
+  - --allow=devel
+  - --socket=session-bus
+  - --share=network
+  - --talk-name=org.freedesktop.Flatpak
+  - --system-talk-name=org.freedesktop.Flatpak

@@ -739,19 +739,15 @@ class MainWindow:
         state = self.get_interface_state(currentNetworkInterface)
 
         if state.lower() == "down":
-            check_output(
-                ["pkexec", "ip", "link", "set", currentNetworkInterface, "up"]
-            )
+            run_command("pkexec", "ip", "link", "set", currentNetworkInterface, "up")
         else:
-            check_output(
-                [
+            run_command(
                     "pkexec",
                     "ip",
                     "link",
                     "set",
                     currentNetworkInterface,
-                    "down",
-                ]
+                    "down"
             )
 
         self.refresh_networks()
@@ -1229,7 +1225,7 @@ def setup_auth_token():
             manage_service("start")
         else:
             _exit(0)
-    username = check_output(["whoami"]).decode().strip()
+    username = run_command("whoami").decode().strip() # may want to modify this to not use sudo
     allowed_to_run_as_root = messagebox.askyesno(
         icon="info",
         title="Root access needed",
@@ -1264,7 +1260,7 @@ def prompt_sudo_password():
     return simpledialog.askstring("Sudo Password", "Enter your sudo password:", show='*')
 
 def run_command(command):
-    command = ['sudo', '-S'] + command
+    command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
     process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd="/home/deck/.zerotier-one")
     stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
     if process.returncode != 0:
@@ -1272,7 +1268,7 @@ def run_command(command):
     return stdout.decode()
 
 def run_zerotier_cli(*args, stderr_to_stdout=False):
-    command = ['sudo', '-S', './zerotier-cli', '-D/home/deck/.zerotier-one'] + list(args)
+    command = ['flatpak-spawn', '--host', 'sudo', '-S', './zerotier-cli', '-D/home/deck/.zerotier-one'] + list(args)
     stderr = STDOUT if stderr_to_stdout else PIPE
     process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd="/home/deck/.zerotier-one")
     stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
@@ -1287,6 +1283,14 @@ if __name__ == "__main__":
     tmp.withdraw()
 
     SUDO_PASSWORD = prompt_sudo_password()
+
+    # while loop, forcing the user to give a proper sudo password
+    while True:
+        try:
+            run_command("echo 'test' > /dev/null")
+            break
+        except CalledProcessError:
+            SUDO_PASSWORD = prompt_sudo_password()
 
     # simple check for zerotier
     while True:
