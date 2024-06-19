@@ -716,9 +716,10 @@ class MainWindow:
 
     def get_interface_state(self, interface):
         res = run_command(["ip", "--json", "address"])
-        # print(res)
-        jres = json.loads(res)
-        # print(jres)
+        print(res)
+        decoderes = res.decode()
+        jres = json.loads(decoderes)
+        print(jres)
         interfaceInfo = jres
         for info in interfaceInfo:
             if info["ifname"] == interface:
