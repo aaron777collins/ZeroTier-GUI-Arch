@@ -622,7 +622,7 @@ class MainWindow:
         self.refresh_networks()
 
     def get_status(self):
-        status = run_zerotier_cli("status").decode()
+        status = run_zerotier_cli("status")
         status = status.split()
         return status
 
@@ -717,11 +717,11 @@ class MainWindow:
 
     def get_interface_state(self, interface):
         res = run_command(["ip", "--json", "address"])
-        print(res)
+        # print(res)
         sres = res.strip()
-        print(sres)
+        # print(sres)
         jres = json.loads(sres)
-        print(jres)
+        # print(jres)
         interfaceInfo = jres
         for info in interfaceInfo:
             if info["ifname"] == interface:
@@ -1165,7 +1165,7 @@ class MainWindow:
                     stderr_to_stdout=True,
                 )
             except CalledProcessError as error:
-                error = error.output.decode().strip()
+                error = error.output.strip()
                 messagebox.showinfo(
                     title="Error", message=f'Error: "{error}"', icon="error"
                 )
@@ -1234,7 +1234,7 @@ def setup_auth_token():
             manage_service("start")
         else:
             _exit(0)
-    username = run_command(["whoami"]).decode().strip() # may want to modify this to not use sudo
+    username = run_command(["whoami"]).strip() # may want to modify this to not use sudo
     allowed_to_run_as_root = messagebox.askyesno(
         icon="info",
         title="Root access needed",
