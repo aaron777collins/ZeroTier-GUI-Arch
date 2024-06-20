@@ -12,8 +12,8 @@
 <img src="img/managepeers.png " width="1000">
 
 # DOWNLOAD HERE
-<a href="https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/install_zerotier_gui.desktop" download>
-    <img src="https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/img/zerotier-gui.png?raw=true" alt="Install ZeroTier GUI">
+<a href="https://github.com/aaron777collins/ZeroTier-GUI-Arch/releases/latest/download/install_zerotier_gui.desktop" download>
+    <img src="https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/img/Download.png?raw=true" alt="Install ZeroTier GUI">
 </a>
 
 # Installation Frontend (Flatpak) + Backend

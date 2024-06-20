@@ -58,3 +58,13 @@ jobs:
         asset_path: zerotier-gui.flatpak
         asset_name: zerotier-gui.flatpak
         asset_content_type: application/vnd.flatpak
+
+    - name: Upload Desktop File
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: install_zerotier_gui.desktop
+        asset_name: install_zerotier_gui.desktop
+        asset_content_type: application/x-desktop
