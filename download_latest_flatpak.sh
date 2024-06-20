@@ -8,6 +8,7 @@ FLATPAK_ID="io.github.aaron777collins.zerotier-gui"
 # Function to clean up weird characters
 cleanup_console() {
   echo -e "\033[0m" # Reset console formatting
+  stty sane # Restore terminal settings
 }
 
 # Trap to cleanup console on exit
@@ -97,5 +98,6 @@ chmod +x "$DESKTOP_FILE"
 
 echo "Desktop file created/updated successfully at $DESKTOP_FILE."
 
+# Final cleanup
 cleanup_console
 echo "Script completed successfully."
