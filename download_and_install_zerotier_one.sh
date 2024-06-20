@@ -25,11 +25,10 @@ echo "Configuring zerotier one..."
 # Tell the user what we will do and that we'll need the sudo password
 echo "Adding permission to run zerotier-one without password but you'll need to enter the sudo password:"
 # echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null
-# Doing the above command but getting the sudo password using zenity and then passing it in
-# Zenity
-sudo_password=$(zenity --password --title="Sudo Password Required" --text="Please enter your sudo password to add permission to run zerotier-one without password.")
-# Doing the echo wheel thing
-echo "$sudo_password" | sudo -S sh -c "echo \"%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one\" > /etc/sudoers.d/zerotier"
+# Doing the above command in a konsole window so the user can enter the password
+
+# Open a new konsole window to run the command
+konsole -e "echo \"%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one\" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null"
 
 # Add service file to run at startup
 mkdir -p $HOME/.config/systemd/user
