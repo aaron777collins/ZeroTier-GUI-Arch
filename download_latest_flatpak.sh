@@ -49,7 +49,7 @@ flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flath
 
 # Install the necessary runtime at the user level
 echo "Installing the necessary runtime..."
-flatpak install --user -y flathub org.gnome.Platform/x86_64/46
+flatpak install --user -y flathub org.gnome.Platform/x86_64/46 2>&1 | tee /dev/null
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to install the necessary runtime."
@@ -58,7 +58,7 @@ fi
 
 # Install the Flatpak package from the downloaded file
 echo "Installing the Flatpak package..."
-flatpak install --user --assumeyes ./zerotier-gui.flatpak
+flatpak install --user --assumeyes ./zerotier-gui.flatpak 2>&1 | tee /dev/null
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to install the Flatpak package."
