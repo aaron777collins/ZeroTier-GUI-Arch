@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 #
 # A Linux front-end for ZeroTier
-# Copyright (C) 2023 Aaron Collins
+# Copyright (C) 2023 Tomás Ralph
+# Copyright (C) 2024 Aaron Collins
 # Original Author: Tomás Ralph
-# Modified and packaged by Aaron Collins
+# Upgraded and packaged by Aaron Collins
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +18,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Modifications:
+# - Added exit button that saves (useful in Steam-OS game-mode)
+# - Adjusted about screen
+# - Remapped functions to work within a flatpak
+# - Remapped functions to work with a static version of ZeroTier
+# - Changed some of the functions to work in a more generic sense (getting the username)
+# - Asking the user for their password to run commands as root
+# - Cleaning up the code to be more uniform in the way it runs commands
+# - This is outside this file but I added a release pipeline and install script to make it really easy to install
+# - the backend for zerotier-one (sebbi08's ZeroTierOne-Static).
+# - Link to the static version of ZeroTierOne-Static that is used: https://github.com/rafalb8/ZeroTierOne-Static/tree/main
 #
 ######################################
 #                                    #
@@ -675,7 +688,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.1"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.2"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
