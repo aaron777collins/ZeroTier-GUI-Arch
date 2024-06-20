@@ -596,6 +596,14 @@ class MainWindow:
             anchor="w",
         )
 
+        close_button = self.formatted_buttons(
+            bottom_frame,
+            text="Close",
+            bg=BUTTON_BACKGROUND,
+            activebackground=BUTTON_ACTIVE_BACKGROUND,
+            command=lambda: join_window.destroy(),
+        )
+
         populate_network_list()
         populate_info_sidebar()
 
@@ -612,6 +620,7 @@ class MainWindow:
         join_entry.pack(side="left", anchor="w", pady=10)
         join_button.pack(side="left", pady=10)
         delete_history_entry_button.pack(side="left", pady=10)
+        close_button.pack(side="right", pady=10)
 
         left_frame.pack(side="left", fill="y", pady=10, padx=5)
         right_frame.pack(side="right", fill="y", pady=10, padx=5)
@@ -688,7 +697,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.3"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.4"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
