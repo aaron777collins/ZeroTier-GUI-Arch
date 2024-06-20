@@ -13,7 +13,7 @@
 
 # DOWNLOAD INSTALLER HERE
 <a href="https://github.com/aaron777collins/ZeroTier-GUI-Arch/releases/latest/download/install_zerotier_gui.desktop" download>
-    <img src="https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/img/Download.png?raw=true" alt="Install ZeroTier GUI">
+    <img src="img/Download.png" alt="Install ZeroTier GUI">
 </a>
 
 > Drag the downloaded file to the desktop, run it, and follow the instructions. This will install the ZeroTier-One backend and the ZeroTier-GUI frontend. **If you want to use the frontend in Steam-OS' game-mode, you'll need to right click the ZeroTier GUI icon generated on the desktop and select `Add To Steam`**
