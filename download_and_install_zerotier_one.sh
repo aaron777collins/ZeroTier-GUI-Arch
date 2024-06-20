@@ -27,7 +27,7 @@ echo "Adding permission to run zerotier-one without password but you'll need to 
 # echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null
 # Doing the above command but getting the sudo password using zenity and then passing it in
 # Zenity
-sudo_password=$(zenity --password --title="Sudo Password Required" --text="Please enter your sudo password to add permission to run zerotier-one without password." --timeout=30)
+sudo_password=$(zenity --password --title="Sudo Password Required" --text="Please enter your sudo password to add permission to run zerotier-one without password.")
 # Doing the echo wheel thing
 echo "$sudo_password" | sudo -S sh -c "echo \"%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one\" > /etc/sudoers.d/zerotier"
 
