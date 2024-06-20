@@ -1245,7 +1245,7 @@ def setup_auth_token():
             manage_service("start")
         else:
             _exit(0)
-    username = run_command(["whoami"]).strip() # may want to modify this to not use sudo
+    username = get_user()
     allowed_to_run_as_root = messagebox.askyesno(
         icon="info",
         title="Root access needed",

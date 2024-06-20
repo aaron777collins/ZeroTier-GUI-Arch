@@ -26,9 +26,6 @@ echo "Adding permission to run zerotier-one without password but you'll need to 
 # echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null
 # Doing the above command in a konsole window so the user can enter the password
 
-# Using zenity to ask the user for the sudo password
-sudo_password=$(zenity --password --title="Sudo Password Required" --text="Please enter your sudo password to add permission to run zerotier-one without password:"; echo $?)
-
 # running the wheel all command with the sudo password
 echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | pkexec tee /etc/sudoers.d/zerotier
 
