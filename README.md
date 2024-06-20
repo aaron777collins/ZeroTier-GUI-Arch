@@ -29,7 +29,7 @@ Follow the instructions on the [Flatpak website](https://flatpak.org/setup/) to 
    curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_install_zerotier_one.sh | bash
    ```
 
-> *Note:* This installation script uses work from sebbi08's ZeroTierOne-Static [Installation Instructions/Script](https://github.com/rafalb8/ZeroTierOne-Static/blob/main/SteamDeck.md). For the frontend, I modified [tralph3's ZeroTier-GUI](https://github.com/tralph3/ZeroTier-GUI) repository to work with flatpak and the static backend.
+> *Note:* This installation script uses work from sebbi08's ZeroTierOne-Static [Installation Instructions/Script](https://github.com/rafalb8/ZeroTierOne-Static/blob/main/SteamDeck.md). For the frontend, I upgraded [tralph3's ZeroTier-GUI](https://github.com/tralph3/ZeroTier-GUI) repository to work with flatpak and the static backend. I also added an exit button, etc.
 
 # Installation (Source)
 1. **Clone the repository:**
