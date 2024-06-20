@@ -16,6 +16,8 @@
     <img src="https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/img/Download.png?raw=true" alt="Install ZeroTier GUI">
 </a>
 
+> Drag the downloaded file to the desktop, run it, and follow the instructions. This will install the ZeroTier-One backend and the ZeroTier-GUI frontend. **If you want to use the frontend in Steam-OS' game-mode, you'll need to right click the ZeroTier GUI icon generated on the desktop and select `Add To Steam`**
+
 # Installation Frontend (Flatpak) + Backend
 You can use the installer file above by downloading it, dragging it onto your desktop and running that. Otherwise, you can follow the instructions below using Konsole or your preferred terminal. Note: The installation script assumes konsole and zenity will be installed on the user's system. If you're using a different terminal or don't have zenity, you may need to modify the script.
 
