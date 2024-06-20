@@ -8,8 +8,11 @@ FLATPAK_ID="io.github.aaron777collins.zerotier-gui"
 # Function to clean up weird characters
 cleanup_console() {
   echo -e "\033[0m" # Reset console formatting
-  stty sane # Restore terminal settings
+  if [ -t 1 ]; then
+    stty sane # Restore terminal settings only if in an interactive terminal
+  fi
 }
+
 
 # Trap to cleanup console on exit
 trap cleanup_console EXIT
