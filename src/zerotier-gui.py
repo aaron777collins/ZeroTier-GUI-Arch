@@ -1283,13 +1283,15 @@ def get_user():
     return pwd.getpwuid(os.getuid())[0]
 
 def run_command(command, use_sudo=True):
+    user = get_user().strip()
     if use_sudo:
         command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
-        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd="/home/deck/.zerotier-one")
+        # get user
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=f"/home/{user}/.zerotier-one")
         stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
     else:
         command = ['flatpak-spawn', '--host'] + command
-        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd="/home/deck/.zerotier-one")
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=f"/home/{user}/.zerotier-one")
         stdout, stderr = process.communicate()
 
     if process.returncode != 0:
@@ -1300,9 +1302,10 @@ def run_command(command, use_sudo=True):
 
 
 def run_zerotier_cli(*args, stderr_to_stdout=False):
-    command = ['flatpak-spawn', '--host', 'sudo', '-S', './zerotier-cli', '-D/home/deck/.zerotier-one'] + list(args)
+    user = get_user().strip()
+    command = ['flatpak-spawn', '--host', 'sudo', '-S', './zerotier-cli', f"-D/home/{user}/.zerotier-one"] + list(args)
     stderr = STDOUT if stderr_to_stdout else PIPE
-    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd="/home/deck/.zerotier-one")
+    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd=f"/home/{user}/.zerotier-one")
     stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
     if process.returncode != 0:
         raise CalledProcessError(process.returncode, command, output=stdout)

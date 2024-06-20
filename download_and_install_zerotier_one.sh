@@ -5,6 +5,51 @@ GITHUB_USER="aaron777collins"
 GITHUB_REPO="ZeroTier-GUI-Arch"
 FLATPAK_ID="io.github.aaron777collins.zerotier-gui"
 
+# Install Backend Function
+install_backend() {
+set -e
+
+echo "Downloading zerotier one binary..."
+mkdir -p $HOME/.zerotier-one && cd $HOME/.zerotier-one
+curl -LJ https://github.com/rafalb8/ZeroTierOne-Static/releases/latest/download/zerotier-one-x86_64.tar.gz \
+    | tar --strip-components=1 -xzf -
+
+mkdir -p networks.d
+touch networks.d/${Network_ID}.conf
+
+echo "Configuring zerotier one..."
+
+# Binary will be run as a user service, but needs root, so add permission to run sudo without password for zerotier-one
+# Tell the user what we will do and that we'll need the sudo password
+echo "Adding permission to run zerotier-one without password but you'll need to enter the sudo password:"
+echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null
+
+# Add service file to run at startup
+mkdir -p $HOME/.config/systemd/user
+
+# Paste whole command
+cat <<EOF > $HOME/.config/systemd/user/zerotier-one.service
+[Unit]
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/sudo %h/.zerotier-one/zerotier-one -U %h/.zerotier-one
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+# -----
+
+echo "Starting zerotier one backend..."
+systemctl --user daemon-reload
+systemctl --user enable --now zerotier-one.service
+
+# unset error handling
+set +e
+
+}
+
 # Function to clean up weird characters
 cleanup_console() {
   echo -e "\033[0m" # Reset console formatting
@@ -13,6 +58,35 @@ cleanup_console() {
 
 # Trap to cleanup console on exit
 trap cleanup_console EXIT
+
+# Ask the user if they need to set the sudo password or if it is already setup
+echo "Do you need to set the sudo password for the user to run zerotier-one? (y/N)"
+
+read -r set_sudo_password
+
+if [ "$set_sudo_password" = "y" ]; then
+  echo "Setting the sudo password for the user to run zerotier-one..."
+  sudo echo "Sudo password set successfully."
+else
+  echo "Selected: Sudo password already set."
+fi
+
+# Installing the zero tier one backend
+
+# Check if the zero tier one backend is already installed
+if [ -f "$HOME/.zerotier-one/zerotier-one" ]; then
+  echo "ZeroTier One backend is already installed."
+else
+  echo "ZeroTier One backend is not installed. Installing..."
+  install_backend
+fi
+
+# Checking if flatpak is installed yet
+# If not, tell the user to install it
+if ! command -v flatpak &> /dev/null; then
+  echo "Error: Flatpak is not installed. Please install Flatpak and try again. You can install Flatpak using your package manager or go to https://www.flatpak.org/setup/ for more information. Exiting..."
+  exit 1
+fi
 
 # Fetch the latest release information from GitHub API
 echo "Fetching the latest release information from GitHub..."
