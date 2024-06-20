@@ -79,7 +79,7 @@ echo "Creating/updating the desktop file at $DESKTOP_FILE..."
 cat <<EOF > "$DESKTOP_FILE"
 [Desktop Entry]
 Encoding=UTF-8
-Exec=flatpak run io.github.aaron777collins.zerotier-gui
+Exec=sh -c 'unset LD_PRELOAD && flatpak run io.github.aaron777collins.zerotier-gui'
 Icon=zerotier-gui
 Type=Application
 Terminal=false
@@ -92,6 +92,10 @@ Categories=Utility;
 Version=$VERSION
 EOF
 
+# Ensure the desktop file is executable
+chmod +x "$DESKTOP_FILE"
+
 echo "Desktop file created/updated successfully at $DESKTOP_FILE."
 
 cleanup_console
+echo "Script completed successfully."
