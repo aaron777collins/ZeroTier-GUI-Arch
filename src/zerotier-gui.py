@@ -28,7 +28,7 @@
 # - Asking the user for their password to run commands as root
 # - Cleaning up the code to be more uniform in the way it runs commands
 # - This is outside this file but I added a release pipeline and install script to make it really easy to install
-# - the backend for zerotier-one (sebbi08's ZeroTierOne-Static).
+# - the backend for zerotier-one (rafalb8's ZeroTierOne-Static).
 # - Link to the static version of ZeroTierOne-Static that is used: https://github.com/rafalb8/ZeroTierOne-Static/tree/main
 #
 ######################################
@@ -688,7 +688,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.2"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.3"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
