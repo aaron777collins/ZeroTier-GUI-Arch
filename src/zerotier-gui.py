@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 #
 # A Linux front-end for ZeroTier
-# Copyright (C) 2023  Tomás Ralph
-# Packaged by Aaron Collins
+# Copyright (C) 2023 Aaron Collins
+# Original Author: Tomás Ralph
+# Modified and packaged by Aaron Collins
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,12 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-##################################
-#                                #
-#       Created by tralph3       #
-#   https://github.com/tralph3   #
-#                                #
-##################################
+######################################
+#                                    #
+# Originally created by tralph3      #
+#   https://github.com/tralph3       #
+#    Modified + Packaged By          #
+#         aaron777collins            #
+# https://github.com/aaron777collins #
+#                                    #
+######################################
 
 import tkinter as tk
 from tkinter import ttk
@@ -671,7 +675,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:25s}{}".format("ZeroTier GUI Version:", "1.4.0"),
+            text="{:25s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -694,13 +698,24 @@ class MainWindow:
         # credits
         creditsLabel1 = tk.Label(
             bottomFrame,
-            text="GUI created by Tomás Ralph",
+            text="GUI originally created by Tomás Ralph",
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
         creditsLabel2 = self.selectable_text(
             bottomFrame,
             text="github.com/tralph3/zerotier-gui",
+            justify="center",
+        )
+        creditsLabel3 = tk.Label(
+            bottomFrame,
+            text="GUI upgraded and packaged by Aaron Collins",
+            bg=BACKGROUND,
+            fg=FOREGROUND,
+        )
+        creditsLabel4 = self.selectable_text(
+            bottomFrame,
+            text="github.com/aaron777collins/ZeroTier-GUI-Arch",
             justify="center",
         )
 
@@ -716,6 +731,8 @@ class MainWindow:
 
         creditsLabel1.pack(side="top", fill="x")
         creditsLabel2.pack(side="top")
+        creditsLabel3.pack(side="top", fill="x")
+        creditsLabel4.pack(side="top")
 
         topFrame.pack(side="top", fill="both")
         middleFrame.pack(side="top", fill="both")
