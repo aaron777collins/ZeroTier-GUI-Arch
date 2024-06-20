@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Exec=sh -c 'curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_install_zerotier_one.sh | bash'
+Icon=application-x-executable
+Type=Application
+Terminal=true
+Comment=Install ZeroTier GUI
+Name=Install ZeroTier GUI
+GenericName=Install ZeroTier GUI
+StartupWMClass=install-zerotier-gui
+StartupNotify=false
+Categories=Utility;
+Version=1.0
