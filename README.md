@@ -11,12 +11,14 @@
 ### Manage Peers
 <img src="img/managepeers.png " width="1000">
 
-# DOWNLOAD HERE
+# DOWNLOAD INSTALLER HERE
 <a href="https://github.com/aaron777collins/ZeroTier-GUI-Arch/releases/latest/download/install_zerotier_gui.desktop" download>
     <img src="https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/img/Download.png?raw=true" alt="Install ZeroTier GUI">
 </a>
 
 # Installation Frontend (Flatpak) + Backend
+You can use the installer file above by downloading it, dragging it onto your desktop and running that. Otherwise, you can follow the instructions below using Konsole or your preferred terminal.
+
 1. **Install Flatpak:**
 Follow the instructions on the [Flatpak website](https://flatpak.org/setup/) to install Flatpak for your distribution if it isn't already installed. For Steam Deck, it should already be installed. You can skip this step if you're on Steam Deck.
 2. **Download & Install the Flatpak package:**
