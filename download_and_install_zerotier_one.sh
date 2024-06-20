@@ -9,7 +9,6 @@ IMAGE_URL="https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/img/
 
 # Install Backend Function
 install_backend() {
-set -e
 
 echo "Downloading zerotier one binary..."
 mkdir -p $HOME/.zerotier-one && cd $HOME/.zerotier-one
@@ -29,6 +28,16 @@ echo "Adding permission to run zerotier-one without password but you'll need to 
 
 # Open a new konsole window to run the command
 konsole -e "echo \"%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one\" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null"
+# Using zenity to ask the user if the sudo password used
+sudo_password_used=$(zenity --question --title="Sudo Password Used" --text="Did you enter the sudo password when prompted?" --ok-label="Yes" --cancel-label="No"; echo $?)
+if [ "$sudo_password_used" -ne 0 ]; then
+  echo "Error: Sudo password not entered. Exiting..."
+  # Tell the user in a gui that they need to enter the sudo password themselves using the terminal command 'passwd' and then try the installation again
+  zenity --error --title="Sudo Password Not Entered" --text="Please enter the sudo password when prompted and then try the installation again." --no-wrap
+  exit 1
+else
+  echo "Selected: Sudo password entered."
+fi
 
 # Add service file to run at startup
 mkdir -p $HOME/.config/systemd/user
@@ -50,9 +59,6 @@ EOF
 echo "Starting zerotier one backend..."
 systemctl --user daemon-reload
 systemctl --user enable --now zerotier-one.service
-
-# unset error handling
-set +e
 
 }
 
