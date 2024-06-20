@@ -11,6 +11,22 @@
 ### Manage Peers
 <img src="img/managepeers.png " width="1000">
 
+# DOWNLOAD HERE
+<a href="https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/install_zerotier_gui.desktop" download>
+    <img src="https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/img/zerotier-gui.png?raw=true" alt="Install ZeroTier GUI">
+</a>
+
+# Installation Frontend (Flatpak) + Backend
+1. **Install Flatpak:**
+Follow the instructions on the [Flatpak website](https://flatpak.org/setup/) to install Flatpak for your distribution if it isn't already installed. For Steam Deck, it should already be installed. You can skip this step if you're on Steam Deck.
+2. **Download & Install the Flatpak package:**
+   Run the following command to download the latest release:
+   ```bash
+   curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_install_zerotier_one.sh | bash
+   ```
+
+> *Note:* This installation script uses work from sebbi08's ZeroTierOne-Static [Installation Instructions/Script](https://github.com/rafalb8/ZeroTierOne-Static/blob/main/SteamDeck.md). For the frontend, I modified [tralph3's ZeroTier-GUI](https://github.com/tralph3/ZeroTier-GUI) repository to work with flatpak and the static backend.
+
 # Installation (Source)
 1. **Clone the repository:**
 
@@ -30,17 +46,6 @@
    ```bash
    python src/zerotier-gui.py
     ```
-
-# Installation Frontend (Flatpak) + Backend
-1. **Install Flatpak:**
-Follow the instructions on the [Flatpak website](https://flatpak.org/setup/) to install Flatpak for your distribution if it isn't already installed. For Steam Deck, it should already be installed. You can skip this step if you're on Steam Deck.
-2. **Download & Install the Flatpak package:**
-   Run the following command to download the latest release:
-   ```bash
-   curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_install_zerotier_one.sh | bash
-   ```
-
-> *Note:* This installation script uses work from sebbi08's ZeroTierOne-Static [Installation Instructions/Script](https://github.com/rafalb8/ZeroTierOne-Static/blob/main/SteamDeck.md). For the frontend, I modified [tralph3's ZeroTier-GUI](https://github.com/tralph3/ZeroTier-GUI) repository to work with flatpak and the static backend.
 
 # Usage
 
