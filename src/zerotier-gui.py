@@ -140,6 +140,14 @@ class MainWindow:
             command=self.see_network_info,
         )
 
+        self.exitButton = self.formatted_buttons(
+            self.bottomFrame,
+            text="Exit",
+            bg=BUTTON_BACKGROUND,
+            activebackground=BUTTON_ACTIVE_BACKGROUND,
+            command=self.on_exit,
+        )
+
         # pack widgets
         self.networkLabel.pack(side="left", anchor="sw")
         self.refreshButton.pack(side="right", anchor="se")
@@ -152,6 +160,7 @@ class MainWindow:
 
         self.leaveButton.pack(side="left", fill="x")
         self.toggleConnectionButton.pack(side="left", fill="x")
+        self.exitButton.pack(side="right", fill="x")
         self.infoButton.pack(side="right", fill="x")
         self.ztCentralButton.pack(side="right", fill="x")
         self.toggleServiceButton.pack(side="right", fill="x")
