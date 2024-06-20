@@ -62,7 +62,7 @@ cleanup_console() {
 trap cleanup_console EXIT
 
 # Ask the user if they need to set the sudo password or if it is already setup
-set_sudo_password=$(zenity --question --title="Sudo Password Setup" --text="Do you need to set the sudo password for the user to run zerotier-one?" --ok-label="Yes" --cancel-label="No"; echo $?)
+set_sudo_password=$(zenity --question --title="Sudo Password Setup" --text="Do you need to set the sudo password? Please select yes if you haven't set it before." --ok-label="Yes" --cancel-label="No"; echo $?)
 
 if [ "$set_sudo_password" -eq 0 ]; then
   echo "Opening Konsole to set the sudo password..."
