@@ -663,26 +663,26 @@ class MainWindow:
         ztAddrLabel = self.selectable_text(
             middleFrame,
             font="Monospace",
-            text="{:25s}{}".format("My ZeroTier Address:", status[2]),
+            text="{:40s}{}".format("My ZeroTier Address:", status[2]),
         )
         versionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:25s}{}".format("ZeroTier Version:", status[3]),
+            text="{:40s}{}".format("ZeroTier Version:", status[3]),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:25s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
         statusLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:25s}{}".format("Status:", status[4]),
+            text="{:40s}{}".format("Status:", status[4]),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
