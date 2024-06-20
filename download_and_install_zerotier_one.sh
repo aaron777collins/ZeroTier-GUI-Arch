@@ -140,6 +140,19 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Check if the Flatpak package is already installed
+if flatpak list --app | grep -q "$FLATPAK_ID"; then
+  echo "Flatpak package is already installed. Removing the existing package..."
+  flatpak uninstall --user -y "$FLATPAK_ID"
+
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to uninstall the existing Flatpak package."
+    exit 1
+  fi
+
+  echo "Successfully uninstalled the existing Flatpak package."
+fi
+
 # Install the Flatpak package from the downloaded file
 echo "Installing the Flatpak package..."
 flatpak install --user --assumeyes ./zerotier-gui.flatpak 2>&1 | tee /dev/null
