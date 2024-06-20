@@ -24,7 +24,12 @@ echo "Configuring zerotier one..."
 # Binary will be run as a user service, but needs root, so add permission to run sudo without password for zerotier-one
 # Tell the user what we will do and that we'll need the sudo password
 echo "Adding permission to run zerotier-one without password but you'll need to enter the sudo password:"
-echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null
+# echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null
+# Doing the above command but getting the sudo password using zenity and then passing it in
+# Zenity
+sudo_password=$(zenity --password --title="Sudo Password Required" --text="Please enter your sudo password to add permission to run zerotier-one without password." --timeout=30)
+# Doing the echo wheel thing
+echo "$sudo_password" | sudo -S sh -c "echo \"%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one\" > /etc/sudoers.d/zerotier"
 
 # Add service file to run at startup
 mkdir -p $HOME/.config/systemd/user
@@ -65,8 +70,18 @@ trap cleanup_console EXIT
 set_sudo_password=$(zenity --question --title="Sudo Password Setup" --text="Do you need to set the sudo password for the user to run zerotier-one?" --ok-label="Yes" --cancel-label="No"; echo $?)
 
 if [ "$set_sudo_password" -eq 0 ]; then
-  echo "Setting the sudo password for the user to run zerotier-one..."
-  passwd
+  echo "Opening Konsole to set the sudo password..."
+  konsole -e "passwd"
+  # Using zenity to ask the user if the sudo password was set
+  sudo_password_set=$(zenity --question --title="Sudo Password Setup" --text="Was the sudo password set successfully?" --ok-label="Yes" --cancel-label="No"; echo $?)
+  if [ "$sudo_password_set" -ne 0 ]; then
+    echo "Error: Sudo password not set. Exiting..."
+    # Tell the user in a gui that they need to set the sudo password themselves using passwd and then try the installation again
+    zenity --error --title="Sudo Password Not Set" --text="Please set the sudo password using the terminal command 'passwd' and then try the installation again." --no-wrap
+    exit 1
+  else
+    echo "Selected: Sudo password set successfully."
+  fi
 else
   echo "Selected: Sudo password already set."
 fi
