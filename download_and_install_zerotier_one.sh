@@ -4,6 +4,8 @@
 GITHUB_USER="aaron777collins"
 GITHUB_REPO="ZeroTier-GUI-Arch"
 FLATPAK_ID="io.github.aaron777collins.zerotier-gui"
+IMAGE_URL="https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/img/zerotier-gui.png?raw=true"
+
 
 # Install Backend Function
 install_backend() {
@@ -66,7 +68,7 @@ read -r set_sudo_password
 
 if [ "$set_sudo_password" = "y" ]; then
   echo "Setting the sudo password for the user to run zerotier-one..."
-  sudo echo "Sudo password set successfully."
+  passwd
 else
   echo "Selected: Sudo password already set."
 fi
@@ -148,6 +150,17 @@ else
   VERSION="0.0.82"
 fi
 
+# Download the icon image for the desktop entry
+echo "Downloading the icon image for the desktop entry..."
+curl -L -o "$HOME/.local/share/icons/zerotier-gui.png" "$IMAGE_URL"
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to download the icon image."
+  exit 1
+fi
+
+echo "Successfully downloaded the icon image."
+
 # Create/update the desktop file
 DESKTOP_FILE="$HOME/Desktop/ZeroTier-GUI.desktop"
 echo "Creating/updating the desktop file at $DESKTOP_FILE..."
@@ -155,7 +168,7 @@ cat <<EOF > "$DESKTOP_FILE"
 [Desktop Entry]
 Encoding=UTF-8
 Exec=sh -c 'unset LD_PRELOAD && flatpak run io.github.aaron777collins.zerotier-gui'
-Icon=zerotier-gui
+Icon=$HOME/.local/share/icons/zerotier-gui.png
 Type=Application
 Terminal=false
 Comment=Linux front-end for ZeroTier
