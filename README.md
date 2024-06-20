@@ -17,7 +17,7 @@
 </a>
 
 # Installation Frontend (Flatpak) + Backend
-You can use the installer file above by downloading it, dragging it onto your desktop and running that. Otherwise, you can follow the instructions below using Konsole or your preferred terminal. Note: The installation script assumes konsole will be installed on the user's system. If you're using a different terminal, you may need to modify the script.
+You can use the installer file above by downloading it, dragging it onto your desktop and running that. Otherwise, you can follow the instructions below using Konsole or your preferred terminal. Note: The installation script assumes konsole and zenity will be installed on the user's system. If you're using a different terminal or don't have zenity, you may need to modify the script.
 
 1. **Install Flatpak:**
 Follow the instructions on the [Flatpak website](https://flatpak.org/setup/) to install Flatpak for your distribution if it isn't already installed. For Steam Deck, it should already be installed. You can skip this step if you're on Steam Deck.

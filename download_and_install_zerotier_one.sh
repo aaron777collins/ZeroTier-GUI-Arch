@@ -26,18 +26,11 @@ echo "Adding permission to run zerotier-one without password but you'll need to 
 # echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null
 # Doing the above command in a konsole window so the user can enter the password
 
-# Open a new konsole window to run the command
-konsole -e "echo \"%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one\" | sudo tee /etc/sudoers.d/zerotier 1> /dev/null"
-# Using zenity to ask the user if the sudo password used
-sudo_password_used=$(zenity --question --title="Sudo Password Used" --text="Did you enter the sudo password when prompted?" --ok-label="Yes" --cancel-label="No"; echo $?)
-if [ "$sudo_password_used" -ne 0 ]; then
-  echo "Error: Sudo password not entered. Exiting..."
-  # Tell the user in a gui that they need to enter the sudo password themselves using the terminal command 'passwd' and then try the installation again
-  zenity --error --title="Sudo Password Not Entered" --text="Please enter the sudo password when prompted and then try the installation again." --no-wrap
-  exit 1
-else
-  echo "Selected: Sudo password entered."
-fi
+# Using zenity to ask the user for the sudo password
+sudo_password=$(zenity --password --title="Sudo Password Required" --text="Please enter your sudo password to add permission to run zerotier-one without password:"; echo $?)
+
+# running the wheel all command with the sudo password
+echo "%wheel ALL=(ALL) NOPASSWD: $HOME/.zerotier-one/zerotier-one" | pkexec tee /etc/sudoers.d/zerotier
 
 # Add service file to run at startup
 mkdir -p $HOME/.config/systemd/user
