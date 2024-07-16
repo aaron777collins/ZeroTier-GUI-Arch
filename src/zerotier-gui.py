@@ -202,7 +202,7 @@ class MainWindow:
         sres = res.strip()
         if "SteamOS" in sres:
             # If you are running SteamOS, open the link in the Steam Browser
-            run_command(["steam", "steam://openurl/" + url])
+            run_command(["steam", "steam://openurl/" + url], use_sudo=False)
         else:
             open_new("https://" + url)
 
@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.9"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.1.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
