@@ -196,7 +196,7 @@ class MainWindow:
         self.networkList.config(yscrollcommand=self.networkListScrollbar.set)
         self.networkListScrollbar.config(command=self.networkList.yview)
 
-    def open_in_new_window(url: string) -> None:
+    def open_new_window(url: string) -> None:
         # Check if you are running SteamOS using lsbrelease
         res = run_command(["lsb_release", "-d"])
         sres = res.strip()
@@ -204,7 +204,7 @@ class MainWindow:
             # If you are running SteamOS, open the link in the Steam Browser
             run_command(["steam", "steam://openurl/" + url])
         else:
-            open_new(url)
+            open_new("https://" + url)
 
     def load_network_history(self):
         history_file_path = path.join(
@@ -243,7 +243,7 @@ class MainWindow:
         self.serviceStatusLabel.configure(text=f"Service Status: {state} | ")
 
     def zt_central(self):
-        open_new_window("https://my.zerotier.com/network")
+        open_new_window("my.zerotier.com/network")
 
     def call_see_network_info(self, event):
         self.see_network_info()
@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.6"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.7"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
