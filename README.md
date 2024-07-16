@@ -18,6 +18,12 @@
 
 > Drag the downloaded file to the desktop, run it, and follow the instructions. This will install the ZeroTier-One backend and the ZeroTier-GUI frontend. **If you want to use the frontend in Steam-OS' game-mode, you'll need to right click the ZeroTier GUI icon generated on the desktop and select `Add To Steam`**
 
+# Requirements
+* **Arch Linux:** This application is designed for Arch Linux (specifically Steam OS) and its derivatives. It may work on other distributions, but it hasn't been tested.
+* **Flatpak:** This application is distributed as a Flatpak package. You'll need Flatpak installed to use it. For Steam Deck, Flatpak is already installed.
+* **Zenity:** This is used for the installation script. If you don't have it, you may need to modify the script.
+* **Firefox** The ZeroTier Central button opens ZeroTier Central using the flatpak org.mozilla.firefox. If you don't have Firefox installed, clicking the link to open ZeroTier Central will not work.
+
 # Installation Frontend (Flatpak) + Backend
 You can use the installer file above by downloading it, dragging it onto your desktop and running that. Otherwise, you can follow the instructions below using Konsole or your preferred terminal. Note: The installation script assumes konsole and zenity will be installed on the user's system. If you're using a different terminal or don't have zenity, you may need to modify the script.
 

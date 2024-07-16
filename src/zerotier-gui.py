@@ -49,7 +49,6 @@ import json
 from json import JSONDecodeError
 from os import getuid, system, _exit, path, makedirs
 from tkinter import simpledialog
-from webbrowser import open_new_tab
 import sys
 from datetime import datetime
 import textwrap
@@ -196,6 +195,9 @@ class MainWindow:
         self.networkList.config(yscrollcommand=self.networkListScrollbar.set)
         self.networkListScrollbar.config(command=self.networkList.yview)
 
+    def open_new_window(url: string) -> None:
+        run_command(["flatpak", "run", "org.mozilla.firefox", "-new-window", url])
+
     def load_network_history(self):
         history_file_path = path.join(
             HISTORY_FILE_DIRECTORY, HISTORY_FILE_NAME
@@ -233,7 +235,7 @@ class MainWindow:
         self.serviceStatusLabel.configure(text=f"Service Status: {state} | ")
 
     def zt_central(self):
-        open_new_tab("https://my.zerotier.com")
+        open_new_window("https://my.zerotier.com/network")
 
     def call_see_network_info(self, event):
         self.see_network_info()
@@ -697,7 +699,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.4"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.5"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
