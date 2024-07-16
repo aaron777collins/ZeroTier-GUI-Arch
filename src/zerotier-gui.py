@@ -204,7 +204,7 @@ class MainWindow:
             # If you are running SteamOS, open the link in the Steam Browser
             run_command(["steam", "steam://openurl/" + url], use_sudo=False)
         else:
-            open_new("https://" + url)
+            open_new(url)
 
     def load_network_history(self):
         history_file_path = path.join(
@@ -243,7 +243,7 @@ class MainWindow:
         self.serviceStatusLabel.configure(text=f"Service Status: {state} | ")
 
     def zt_central(self):
-        self.open_new_window("my.zerotier.com/network")
+        self.open_new_window("https://my.zerotier.com/network")
 
     def call_see_network_info(self, event):
         self.see_network_info()
@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.1.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.1.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
