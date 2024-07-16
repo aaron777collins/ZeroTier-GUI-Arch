@@ -48,6 +48,7 @@ from subprocess import PIPE, Popen, check_output, STDOUT, CalledProcessError
 import json
 from json import JSONDecodeError
 from os import getuid, system, _exit, path, makedirs
+from webbrowser import open_new
 from tkinter import simpledialog
 import sys
 from datetime import datetime
@@ -195,8 +196,15 @@ class MainWindow:
         self.networkList.config(yscrollcommand=self.networkListScrollbar.set)
         self.networkListScrollbar.config(command=self.networkList.yview)
 
-    def open_new_window(url: string) -> None:
-        run_command(["flatpak", "run", "org.mozilla.firefox", "-new-window", url])
+    def open_in_new_window(url: string) -> None:
+        # Check if you are running SteamOS using lsbrelease
+        res = run_command(["lsb_release", "-d"])
+        sres = res.strip()
+        if "SteamOS" in sres:
+            # If you are running SteamOS, open the link in the Steam Browser
+            run_command(["steam", "steam://openurl/" + url])
+        else:
+            open_new(url)
 
     def load_network_history(self):
         history_file_path = path.join(
@@ -699,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.5"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.0.6"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
