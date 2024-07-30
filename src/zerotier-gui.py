@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.2.2"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.2.3"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1367,7 +1367,7 @@ def run_zerotier_cli(*args, stderr_to_stdout=False):
     return stdout.decode()
 
 def ask_sudo_password():
-    def save_password():
+    def save_password(event=None):
         nonlocal password
         password = passwordEntry.get()
         passwordWindow.destroy()
