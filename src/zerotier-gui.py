@@ -1334,8 +1334,59 @@ def setup_auth_token():
         )
     _exit(0)
 
-def prompt_sudo_password():
-    return simpledialog.askstring("Sudo Password", "Enter your sudo password:", show='*')
+def ask_sudo_password(self):
+    password = None
+
+    def save_password():
+        nonlocal password
+        password = passwordEntry.get()
+        passwordWindow.destroy()
+
+    passwordWindow = self.launch_sub_window("Enter Sudo Password")
+
+    # frames
+    topFrame = tk.Frame(passwordWindow, padx=20, pady=20, bg=BACKGROUND)
+    bottomFrame = tk.Frame(passwordWindow, padx=20, pady=10, bg=BACKGROUND)
+
+    # widgets
+    promptLabel = tk.Label(
+        topFrame,
+        text="Please enter your sudo password:",
+        font=70,
+        bg=BACKGROUND,
+        fg=FOREGROUND,
+    )
+
+    passwordEntry = tk.Entry(
+        topFrame,
+        show='*',
+        font="Monospace",
+        bg=BACKGROUND,
+        fg=FOREGROUND,
+    )
+
+    saveButton = self.formatted_buttons(
+        bottomFrame,
+        text="Save",
+        bg=BUTTON_BACKGROUND,
+        activebackground=BUTTON_ACTIVE_BACKGROUND,
+        command=save_password,
+    )
+
+    # pack widgets
+    promptLabel.pack(side="top", anchor="n")
+    passwordEntry.pack(side="top", anchor="n", pady=10)
+    saveButton.pack(side="top", pady=10)
+
+    topFrame.pack(side="top", fill="both")
+    bottomFrame.pack(side="top", fill="both")
+
+    # Focus on the password entry box
+    passwordEntry.focus_set()
+
+    passwordWindow.mainloop()
+
+    return password
 
 def get_user():
     return pwd.getpwuid(os.getuid())[0]
@@ -1375,7 +1426,7 @@ if __name__ == "__main__":
     tmp = tk.Tk()
     tmp.withdraw()
 
-    SUDO_PASSWORD = prompt_sudo_password()
+    SUDO_PASSWORD = ask_sudo_password()
 
     # while loop, forcing the user to give a proper sudo password
     while True:
@@ -1383,7 +1434,7 @@ if __name__ == "__main__":
             run_command(["true"])
             break
         except CalledProcessError:
-            SUDO_PASSWORD = prompt_sudo_password()
+            SUDO_PASSWORD = ask_sudo_password()
 
     # simple check for zerotier
     while True:
