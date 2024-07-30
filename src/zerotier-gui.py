@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.2.1"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.2.2"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1406,6 +1406,9 @@ def ask_sudo_password():
         activebackground='DarkOrange2',
         command=save_password,
     )
+
+    # Bind the Enter key to the save_password function
+    passwordEntry.bind('<Return>', save_password)
 
     # pack widgets
     promptLabel.pack(side="top", anchor="n")
