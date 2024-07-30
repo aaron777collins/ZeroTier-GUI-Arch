@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.2.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.2.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1367,40 +1367,41 @@ def run_zerotier_cli(*args, stderr_to_stdout=False):
     return stdout.decode()
 
 def ask_sudo_password():
-    password = None
-
     def save_password():
         nonlocal password
         password = passwordEntry.get()
         passwordWindow.destroy()
 
-    passwordWindow = tk.Tk()
+    password = None
+
+    # Create a new Toplevel window instead of Tk
+    passwordWindow = tk.Toplevel()
     passwordWindow.title("Enter Sudo Password")
 
     # frames
-    topFrame = tk.Frame(passwordWindow, padx=20, pady=20, bg=BACKGROUND)
-    bottomFrame = tk.Frame(passwordWindow, padx=20, pady=10, bg=BACKGROUND)
+    topFrame = tk.Frame(passwordWindow, padx=20, pady=20, bg='white')
+    bottomFrame = tk.Frame(passwordWindow, padx=20, pady=10, bg='white')
 
     # widgets
     promptLabel = tk.Label(
         topFrame,
         text="Please enter your sudo password:",
-        font=70,
-        bg=BACKGROUND,
-        fg=FOREGROUND,
+        font=("Helvetica", 14),
+        bg='white',
+        fg='black',
     )
 
     passwordEntry = tk.Entry(
         topFrame,
         show='*',
-        font="Monospace",
-        bg=BACKGROUND,
-        fg=FOREGROUND,
+        font=("Monospace", 12),
+        bg='white',
+        fg='black',
     )
 
     saveButton = tk.Button(
         bottomFrame,
-        text="Save",
+        text="Submit",
         bg='DarkOrange1',
         activebackground='DarkOrange2',
         command=save_password,
@@ -1417,9 +1418,12 @@ def ask_sudo_password():
     # Focus on the password entry box
     passwordEntry.focus_set()
 
-    passwordWindow.mainloop()
+    # Wait for the window to close
+    passwordWindow.grab_set()
+    passwordWindow.wait_window()
 
     return password
+
 
 if __name__ == "__main__":
     os.environ["FLATPAK_ID"] = "io.github.aaron777collins.zerotier-gui"
@@ -1428,6 +1432,7 @@ if __name__ == "__main__":
     tmp.withdraw()
 
     SUDO_PASSWORD = ask_sudo_password()
+    print(f"Entered password: {SUDO_PASSWORD}")
 
     # while loop, forcing the user to give a proper sudo password
     while True:
@@ -1436,6 +1441,7 @@ if __name__ == "__main__":
             break
         except CalledProcessError:
             SUDO_PASSWORD = ask_sudo_password()
+            print(f"Entered password: {SUDO_PASSWORD}")
 
     # simple check for zerotier
     while True:
