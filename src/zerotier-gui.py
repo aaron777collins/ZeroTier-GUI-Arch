@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.1.7"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.2.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1398,11 +1398,11 @@ def ask_sudo_password():
         fg=FOREGROUND,
     )
 
-    saveButton = self.formatted_buttons(
+    saveButton = tk.Button(
         bottomFrame,
         text="Save",
-        bg=BUTTON_BACKGROUND,
-        activebackground=BUTTON_ACTIVE_BACKGROUND,
+        bg='DarkOrange1',
+        activebackground='DarkOrange2',
         command=save_password,
     )
 
