@@ -1,6 +1,6 @@
 # ZeroTier-GUI Arch <img src="img/zerotier-gui.png" align="bottom">
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat-square)](https://github.com/tralph3/ZeroTier-GUI/blob/master/LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat-square)](https://github.com/aaron777collins/ZeroTier-GUI-Arch/blob/master/LICENSE)
 
 **A Linux front-end for ZeroTier**
 
