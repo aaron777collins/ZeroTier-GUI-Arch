@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.5.1"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.5.2"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1300,6 +1300,7 @@ def reinstall_backend():
             ["sh", "-c", "curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_reinstall_backend.sh | bash"],
             use_sudo=False,
             cdw=cdwPath,
+            show_output=True,
         )
 
         # Tell the user we succeeded in re-installing the backend
@@ -1336,7 +1337,7 @@ def reinstall_backend():
 def get_user():
     return pwd.getpwuid(os.getuid())[0]
 
-def run_command(command, use_sudo=True, cdw=None):
+def run_command(command, use_sudo=True, cdw=None, show_output=False):
     user = get_user().strip()
 
     cdwPath = f"/home/{user}/.zerotier-one" if cdw is None else cdw
@@ -1350,11 +1351,24 @@ def run_command(command, use_sudo=True, cdw=None):
         # get user
         process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cdwPath)
         stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
+        if show_output:
+            # Spawn tkinter window with stdout and stderr
+            messagebox.showinfo(
+                title="Command Output",
+                message=f"stdout:\n{stdout.decode()}\n\nstderr:\n{stderr.decode()}",
+                icon="info",
+            )
     else:
         command = ['flatpak-spawn', '--host'] + command
         process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cdwPath)
         stdout, stderr = process.communicate()
-
+        if show_output:
+            # Spawn tkinter window with stdout and stderr
+            messagebox.showinfo(
+                title="Command Output",
+                message=f"stdout: {stdout.decode()}\n\nstderr: {stderr.decode()}",
+                icon="info",
+            )
     if process.returncode != 0:
         raise CalledProcessError(process.returncode, command, output=stdout)
 
@@ -1444,6 +1458,7 @@ if __name__ == "__main__":
     print(f"Entered password: {SUDO_PASSWORD}")
 
     # while loop, forcing the user to give a proper sudo password
+
     while True:
         try:
             run_command(["true"])
@@ -1458,6 +1473,27 @@ if __name__ == "__main__":
                     icon="error",
                 )
             reinstall_backend()
+            continue
+        except Exception as e:
+            # Tell the user the error like "message=f"An error while trying to run any basic commands. Please report the following error: {e} on Github. You can also try re-installing the backend to see if that fixes it.
+            # Ask them if they'd like to try it (yes/no)
+            # If they say yes, reinstall the backend
+            # If they say no, tell them to report the error on Github
+            fixResponse = messagebox.askyesno(
+                title="Error",
+                message=f"An error occurred while trying to run basic commands. Please report the following error: {e} on the ZeroTier-Arch Github.\n\nOptionally: you can try self diagnosis:\nWould you like to try re-installing the backend?",
+                icon="error",
+            )
+            if fixResponse:
+                reinstall_backend()
+                continue
+            else:
+                messagebox.showinfo(
+                    title="Error",
+                    message=f"Please report the error on the ZeroTier-Arch Github: {e}\n\nLink: https://github.com/aaron777collins/ZeroTier-GUI-Arch/issues/new",
+                    icon="error",
+                )
+                exit(1)
             continue
 
     # simple check for zerotier
@@ -1487,8 +1523,8 @@ if __name__ == "__main__":
                 manage_service("start")
 
                 # check if the service is running (run_command(["systemctl", "--user", "is-active", "zerotier-one"])) and check if the response contains active or inactive
-
-                running = run_command(["systemctl", "--user", "is-active", "zerotier-one"])
+                user = get_user().strip()
+                running = run_command(["systemctl", "--user", "is-active", "zerotier-one"], use_sudo=False, cdw=f"/home/{user}")
                 if "inactive" in running or "failed" in running:
                     messagebox.showinfo(
                         title="Error",
