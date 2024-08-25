@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1240,9 +1240,7 @@ class TreeView(ttk.Treeview):
     def __init__(self, root, *columns):
         super().__init__(root)
 
-        self["columns"] = tuple(columns)
-        self.column("#0", width=0, stretch=tk.NO)
-
+        self["columns"] = tuple(columns)run_command
         for label in columns:
             self.heading(label, text=label)
         self.configure_style()
@@ -1286,6 +1284,7 @@ def manage_service(action):
 def reinstall_backend():
     # stop service
     manage_service("stop")
+    manage_service("disable")
 
     # Run download_and_reinstall_backend.sh as regular user using bash
     try:
@@ -1319,6 +1318,7 @@ def reinstall_backend():
         exit(1)
 
     # start service
+    manage_service("enable")
     manage_service("start")
 
 
@@ -1333,13 +1333,7 @@ def run_command(command, use_sudo=True):
 
     # Check if /home/<user>/.zerotier-one exists
     if not os.path.exists(f"/home/{user}/.zerotier-one"):
-        # Tell user that the backend is missing and that we will re-install it
-        messagebox.showinfo(
-            title="Error",
-            message="The ZeroTier backend is missing. Re-installing the backend...",
-            icon="error",
-        )
-        reinstall_backend()
+        raise FileNotFoundError(".zerotier-one folder not found!")
 
     if use_sudo:
         command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
@@ -1477,7 +1471,7 @@ if __name__ == "__main__":
                 # check if the service is running (run_command(["systemctl", "--user", "is-active", "zerotier-one"])) and check if the response contains active or inactive
 
                 running = run_command(["systemctl", "--user", "is-active", "zerotier-one"])
-                if "inactive" in running:
+                if "inactive" in running or "failed" in running:
                     messagebox.showinfo(
                         title="Error",
                         icon="error",
