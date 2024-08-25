@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.5.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.5.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1342,8 +1342,8 @@ def run_command(command, use_sudo=True, cdw=None):
     cdwPath = f"/home/{user}/.zerotier-one" if cdw is None else cdw
 
     # Check if /home/<user>/.zerotier-one exists
-    if not os.path.exists(f"/home/{user}/.zerotier-one"):
-        raise FileNotFoundError(".zerotier-one folder not found!")
+    if not os.path.exists(cdwPath):
+        raise FileNotFoundError(f"Path {cdwPath} does not exist")
 
     if use_sudo:
         command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
