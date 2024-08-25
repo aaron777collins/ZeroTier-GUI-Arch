@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.2"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.3"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1441,6 +1441,14 @@ if __name__ == "__main__":
         except CalledProcessError:
             SUDO_PASSWORD = ask_sudo_password()
             print(f"Entered password: {SUDO_PASSWORD}")
+        except FileNotFoundError:
+            messagebox.showinfo(
+                    title="Error",
+                    message="ZeroTier isn't installed! Re-installing the backend...",
+                    icon="error",
+                )
+            reinstall_backend()
+            continue
 
     # simple check for zerotier
     while True:
