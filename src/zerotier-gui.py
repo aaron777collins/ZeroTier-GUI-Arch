@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.5"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.5.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1268,6 +1268,7 @@ class TreeView(ttk.Treeview):
 
 def manage_service(action, cdw=None):
 
+    user = get_user().strip()
     cdwPath = f"/home/{user}" if cdw is None else cdw
 
     # try as user
@@ -1285,6 +1286,9 @@ def manage_service(action, cdw=None):
 
 def reinstall_backend():
 
+    user = get_user().strip()
+    cdwPath = f"/home/{user}"
+
     # stop service
     manage_service("stop")
     manage_service("disable")
@@ -1295,7 +1299,7 @@ def reinstall_backend():
         run_command(
             ["sh", "-c", "curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_reinstall_backend.sh | bash"],
             use_sudo=False,
-            cdw=f"/home/{user}",
+            cdw=cdwPath,
         )
 
         # Tell the user we succeeded in re-installing the backend
