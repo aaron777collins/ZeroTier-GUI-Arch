@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.3.2"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1330,6 +1330,17 @@ def get_user():
 
 def run_command(command, use_sudo=True):
     user = get_user().strip()
+
+    # Check if /home/<user>/.zerotier-one exists
+    if not os.path.exists(f"/home/{user}/.zerotier-one"):
+        # Tell user that the backend is missing and that we will re-install it
+        messagebox.showinfo(
+            title="Error",
+            message="The ZeroTier backend is missing. Re-installing the backend...",
+            icon="error",
+        )
+        reinstall_backend()
+
     if use_sudo:
         command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
         # get user
