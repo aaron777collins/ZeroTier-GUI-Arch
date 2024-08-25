@@ -147,10 +147,8 @@ if flatpak list --app | grep -q "$FLATPAK_ID"; then
 
   if [ $? -ne 0 ]; then
     echo "Error: Failed to uninstall the existing Flatpak package."
-    exit 1
+    echo "Attempting the rest of the install to overwrite the existing package..."
   fi
-
-  echo "Successfully uninstalled the existing Flatpak package."
 fi
 
 # Install the Flatpak package from the downloaded file

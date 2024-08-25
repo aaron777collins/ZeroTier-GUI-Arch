@@ -1283,56 +1283,47 @@ def manage_service(action):
                 title="Error", message=f'Error: "{error}"', icon="error"
             )
 
-def setup_auth_token():
-    if getuid() == 0:
-        return
-    if not path.isfile("/var/lib/zerotier-one/authtoken.secret"):
-        allowed_to_start_service = messagebox.askyesno(
-            icon="info",
-            title="No authtoken found",
-            message=textwrap.dedent(
-                """\
-                No authtoken.secret file has been found in
-                "/var/lib/zerotier-one". This usually means you
-                never started the zerotier-one service.
-                Do you wish to start it now?
-                """
-            )
+def reinstall_backend():
+    # stop service
+    manage_service("stop")
+
+    # Run download_and_reinstall_backend.sh as regular user using bash
+    try:
+        # sh -c 'curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_reinstall_backend.sh | bash
+        run_command(
+            ["sh", "-c", "curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_reinstall_backend.sh | bash"],
+            use_sudo=False,
         )
-        if allowed_to_start_service:
-            manage_service("start")
-        else:
-            _exit(0)
-    username = get_user()
-    allowed_to_run_as_root = messagebox.askyesno(
-        icon="info",
-        title="Root access needed",
-        message=f"In order to grant {username} permission "
-        "to use ZeroTier we need temporary root access to "
-        "add them to the zerotier-one group and change the "
-        "auth-token permissions in /var/lib/zerotier-one. "
-        "Otherwise, you would need to run this "
-        "program as root. Grant access?",
-    )
-    if allowed_to_run_as_root:
-        system(textwrap.dedent(
-            f"""\
-            pkexec bash -c "usermod -aG zerotier-one {username} &&
-            chmod 660 /var/lib/zerotier-one/authtoken.secret &&
-            chmod 660 /var/lib/zerotier-one/identity.secret"
-            """
-        ))
+
+        # Tell the user we succeeded in re-installing the backend
         messagebox.showinfo(
             title="Success",
-            message=textwrap.dedent(
-                """\
-                You were successfully added to the zerotier-one
-                group. If you're still having problems, you may need
-                to re-login in order for the changes to take effect.
-                """
-            )
+            message="Successfully re-installed the ZeroTier backend.",
+            icon="info",
         )
-    _exit(0)
+
+    except CalledProcessError as error:
+        error = error.output.decode().strip()
+        messagebox.showinfo(
+            title="Error", message=f'Error: "{error}"', icon="error"
+        )
+
+        # Tell user that we failed to re-install the backend and that they should delete the ~/.zerotier-one folder and re-run the installer script (possibly a few times) in a messagebox
+        messagebox.showinfo(
+            title="Error",
+            message="Failed to re-install the ZeroTier backend.\n\n"
+            "Please delete the ~/.zerotier-one folder and re-run the installer script.",
+            icon="error",
+        )
+
+        exit(1)
+
+    # start service
+    manage_service("start")
+
+
+
+
 
 def get_user():
     return pwd.getpwuid(os.getuid())[0]
@@ -1457,40 +1448,37 @@ if __name__ == "__main__":
                 messagebox.showinfo(
                     title="Error",
                     icon="error",
-                    message="This user doesn't have access to ZeroTier!",
+                    message="This user doesn't have access to ZeroTier! Re-installing the backend...",
                 )
-                setup_auth_token()
+                reinstall_backend()
                 continue
             # service not running
             if error.returncode == 1:
-                allowed_to_enable_service = messagebox.askyesno(
+                messagebox.showinfo(
+                    title="Error",
                     icon="error",
-                    title="ZeroTier-One Service",
-                    message="The 'zerotier-one' service isn't running.\n\n"
-                    "Do you wish to grant root access to enable it?",
+                    message="The zerotier service isn't running! Re-installing the backend...",
                 )
-                if allowed_to_enable_service:
-                    manage_service("start")
-                else:
-                    _exit(1)
+                reinstall_backend()
+                continue
             # in case there's no command
             if error.returncode == 127:
                 messagebox.showinfo(
                     title="Error",
-                    message="ZeroTier isn't installed!",
+                    message="ZeroTier isn't installed! Re-installing the backend...",
                     icon="error",
                 )
-                print("ZeroTier isn't installed", file=sys.stderr)
-                _exit(127)
+                reinstall_backend()
+                continue
             break
         except FileNotFoundError:
             messagebox.showinfo(
-                title="Error",
-                message="ZeroTier isn't installed!",
-                icon="error",
-            )
-            print("ZeroTier isn't installed", file=sys.stderr)
-            _exit(127)
+                    title="Error",
+                    message="ZeroTier isn't installed! Re-installing the backend...",
+                    icon="error",
+                )
+            reinstall_backend()
+            continue
         break
     # destroy temporary window
     tmp.destroy()
