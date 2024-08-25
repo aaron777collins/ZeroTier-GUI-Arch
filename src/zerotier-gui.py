@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.3.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.3.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1457,9 +1457,22 @@ if __name__ == "__main__":
                 messagebox.showinfo(
                     title="Error",
                     icon="error",
-                    message="The zerotier service isn't running! Re-installing the backend...",
+                    message="The zerotier service isn't running! Starting the backend...",
                 )
-                reinstall_backend()
+
+                # start the service
+                manage_service("start")
+
+                # check if the service is running
+                try:
+                    run_command(["systemctl", "--user", "is-active", "zerotier-one"])
+                except CalledProcessError:
+                    messagebox.showinfo(
+                        title="Error",
+                        icon="error",
+                        message="Failed to start the ZeroTier backend! Re-installing the backend...",
+                    )
+                    reinstall_backend()
                 continue
             # in case there's no command
             if error.returncode == 127:
