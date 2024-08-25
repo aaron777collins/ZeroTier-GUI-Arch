@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.4"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.5"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1266,15 +1266,17 @@ class TreeView(ttk.Treeview):
         )
 
 
-def manage_service(action):
+def manage_service(action, cdw=None):
+
+    cdwPath = f"/home/{user}" if cdw is None else cdw
 
     # try as user
     try:
-        return run_command(["systemctl", "--user", action, "zerotier-one"], use_sudo=False)
+        return run_command(["systemctl", "--user", action, "zerotier-one"], use_sudo=False, cdw=cdwPath)
     except CalledProcessError:
         # try as system
         try:
-            return run_command(["systemctl", action, "zerotier-one"])
+            return run_command(["systemctl", action, "zerotier-one"], cdw=cdwPath)
         except CalledProcessError as error:
             error = error.output.decode().strip()
             messagebox.showinfo(
