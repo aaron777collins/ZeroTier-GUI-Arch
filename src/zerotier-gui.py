@@ -707,7 +707,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.3"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.4.4"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1282,6 +1282,7 @@ def manage_service(action):
             )
 
 def reinstall_backend():
+
     # stop service
     manage_service("stop")
     manage_service("disable")
@@ -1292,6 +1293,7 @@ def reinstall_backend():
         run_command(
             ["sh", "-c", "curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_reinstall_backend.sh | bash"],
             use_sudo=False,
+            cdw=f"/home/{user}",
         )
 
         # Tell the user we succeeded in re-installing the backend
@@ -1328,8 +1330,10 @@ def reinstall_backend():
 def get_user():
     return pwd.getpwuid(os.getuid())[0]
 
-def run_command(command, use_sudo=True):
+def run_command(command, use_sudo=True, cdw=None):
     user = get_user().strip()
+
+    cdwPath = f"/home/{user}/.zerotier-one" if cdw is None else cdw
 
     # Check if /home/<user>/.zerotier-one exists
     if not os.path.exists(f"/home/{user}/.zerotier-one"):
@@ -1338,11 +1342,11 @@ def run_command(command, use_sudo=True):
     if use_sudo:
         command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
         # get user
-        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=f"/home/{user}/.zerotier-one")
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cdwPath)
         stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
     else:
         command = ['flatpak-spawn', '--host'] + command
-        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=f"/home/{user}/.zerotier-one")
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cdwPath)
         stdout, stderr = process.communicate()
 
     if process.returncode != 0:
