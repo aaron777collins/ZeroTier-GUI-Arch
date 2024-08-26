@@ -709,7 +709,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.6.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.6.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1389,6 +1389,37 @@ def run_command(command, use_sudo=True, cdw=None):
     # Strip [sudo] password for <user>: from stdout
     return stdout.decode().replace(f"[sudo] password for {get_user()}: ", "")
 
+def disable_duplicate_zerotier():
+    # Detect if there's a duplicate zerotier service that is running. If so, ask the user permission to disable it and mention that not disabling it could lead to issues running our ZeroTier service.
+    # If the user agrees, disable the duplicate service and tell the user that it has been disabled.
+        res = "active"
+
+
+        if "active" in res:
+            print("Duplicate ZeroTier service detected. Asking user for permission to disable it.")
+            # Ask the user if they'd like to disable the duplicate ZeroTier service
+            disableResponse = messagebox.askyesno(
+                title="Duplicate ZeroTier Service Detected",
+                message="A duplicate ZeroTier service has been detected. This could cause issues with the ZeroTier service. Would you like to disable the duplicate ZeroTier service?",
+                icon="warning",
+            )
+
+            if disableResponse:
+                # Disable the duplicate ZeroTier service
+                print("Disabling the duplicate ZeroTier service.")
+                run_command(["systemctl", "disable", "zerotier-one"])
+                run_command(["systemctl", "stop", "zerotier-one"])
+                print("Disabled the duplicate ZeroTier service.")
+                # Tell the user that the duplicate ZeroTier service has been disabled
+                messagebox.showinfo(
+                    title="Duplicate ZeroTier Service Disabled",
+                    message="The duplicate ZeroTier service has been disabled.",
+                    icon="info",
+                )
+    except Exception as e:
+        print(f"An unknown error occurred while trying to check if the ZeroTier service is running. Error: {e}")
+        return
+
 
 def run_zerotier_cli(*args, stderr_to_stdout=False):
     user = get_user().strip()
@@ -1511,6 +1542,9 @@ if __name__ == "__main__":
                 )
                 exit(1)
             continue
+
+    # Check for Root level ZeroTier installation (from other installations, etc.) and disable it
+    disable_duplicate_zerotier()
 
     # simple check for zerotier
     while True:
