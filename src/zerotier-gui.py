@@ -709,7 +709,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.6.1"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.6.2"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1392,8 +1392,10 @@ def run_command(command, use_sudo=True, cdw=None):
 def disable_duplicate_zerotier():
     # Detect if there's a duplicate zerotier service that is running. If so, ask the user permission to disable it and mention that not disabling it could lead to issues running our ZeroTier service.
     # If the user agrees, disable the duplicate service and tell the user that it has been disabled.
-        res = "active"
 
+    # Check if the service is running
+    try:
+        res = run_command(["systemctl", "is-active", "zerotier-one"])
 
         if "active" in res:
             print("Duplicate ZeroTier service detected. Asking user for permission to disable it.")
