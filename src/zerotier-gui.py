@@ -64,6 +64,8 @@ BUTTON_ACTIVE_BACKGROUND = "#ffbf71"
 HISTORY_FILE_DIRECTORY = path.expanduser("~/.local/share/zerotier-gui")
 HISTORY_FILE_NAME = "network_history.json"
 
+DEBUG_MODE = False
+
 
 class MainWindow:
     def __init__(self):
@@ -707,7 +709,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.5.2"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.6.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1290,8 +1292,16 @@ def reinstall_backend():
     cdwPath = f"/home/{user}"
 
     # stop service
-    manage_service("stop")
-    manage_service("disable")
+    try:
+        manage_service("stop")
+        manage_service("disable")
+    except CalledProcessError as error:
+        # Check if error code is 5
+        if error.returncode == 5:
+            # The service could not be loaded
+            print(f"Service could not be loaded: {error}, error.returncode: {error.returncode}")
+        else:
+            print("An unknown error occurred while trying to stop and disable the ZeroTier service. Skipping the stop/disable step and proceeding with the re-installation of the backend service anyways.")
 
     # Run download_and_reinstall_backend.sh as regular user using bash
     try:
@@ -1300,7 +1310,6 @@ def reinstall_backend():
             ["sh", "-c", "curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/download_and_reinstall_backend.sh | bash"],
             use_sudo=False,
             cdw=cdwPath,
-            show_output=True,
         )
 
         # Tell the user we succeeded in re-installing the backend
@@ -1337,38 +1346,43 @@ def reinstall_backend():
 def get_user():
     return pwd.getpwuid(os.getuid())[0]
 
-def run_command(command, use_sudo=True, cdw=None, show_output=False):
+def run_command(command, use_sudo=True, cdw=None):
     user = get_user().strip()
 
     cdwPath = f"/home/{user}/.zerotier-one" if cdw is None else cdw
+
+    print(f"Original command: {command}, cdwPath: {cdwPath}, use_sudo: {use_sudo}")
 
     # Check if /home/<user>/.zerotier-one exists
     if not os.path.exists(cdwPath):
         raise FileNotFoundError(f"Path {cdwPath} does not exist")
 
+    # Add prefixes
+
     if use_sudo:
-        command = ['flatpak-spawn', '--host', 'sudo', '-S'] + command
-        # get user
-        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cdwPath)
-        stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
-        if show_output:
-            # Spawn tkinter window with stdout and stderr
-            messagebox.showinfo(
-                title="Command Output",
-                message=f"stdout:\n{stdout.decode()}\n\nstderr:\n{stderr.decode()}",
-                icon="info",
-            )
-    else:
+        command = ['sudo', '-S'] + command
+
+    if not DEBUG_MODE:
         command = ['flatpak-spawn', '--host'] + command
-        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cdwPath)
+
+    print(f"Running command: {command}")
+    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cdwPath)
+
+    if use_sudo:
+        # get user
+        stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
+    else:
         stdout, stderr = process.communicate()
-        if show_output:
-            # Spawn tkinter window with stdout and stderr
-            messagebox.showinfo(
-                title="Command Output",
-                message=f"stdout: {stdout.decode()}\n\nstderr: {stderr.decode()}",
-                icon="info",
-            )
+
+    try:
+        # If none, print None otherwise decode
+        stdoutStr = stdout.decode().replace(f"[sudo] password for {get_user()}: ", "") if stdout is not None else None
+        stderrStr = stderr.decode() if stderr is not None else None
+        print(f'stdout: {stdoutStr}, stderr: {stderrStr}, process.returncode: {process.returncode}')
+    except Exception as e:
+        print("An error occurred while trying to print the stdout, stderr, and process.returncode. Printing in raw format instead.")
+        print(f"stdout: {stdout}, stderr: {stderr}, process.returncode: {process.returncode}")
+
     if process.returncode != 0:
         raise CalledProcessError(process.returncode, command, output=stdout)
 
@@ -1378,7 +1392,9 @@ def run_command(command, use_sudo=True, cdw=None, show_output=False):
 
 def run_zerotier_cli(*args, stderr_to_stdout=False):
     user = get_user().strip()
-    command = ['flatpak-spawn', '--host', 'sudo', '-S', './zerotier-cli', f"-D/home/{user}/.zerotier-one"] + list(args)
+    command = ['sudo', '-S', './zerotier-cli', f"-D/home/{user}/.zerotier-one"] + list(args)
+    if not DEBUG_MODE:
+        command = ['flatpak-spawn', '--host'] + command
     stderr = STDOUT if stderr_to_stdout else PIPE
     process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd=f"/home/{user}/.zerotier-one")
     stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
