@@ -709,7 +709,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.6.2"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
