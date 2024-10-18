@@ -159,6 +159,9 @@ else
 fi
 
 # Download the icon image for the desktop entry
+echo "Ensuring icons directory exists..."
+mkdir -p "$HOME/.local/share/icons"
+
 echo "Downloading the icon image for the desktop entry..."
 curl -L -o "$HOME/.local/share/icons/zerotier-gui.png" "$IMAGE_URL"
 
