@@ -47,15 +47,10 @@ fi
 if ! command -v flatpak &> /dev/null; then
   echo "Flatpak is not installed, skipping Flatpak-related uninstallation."
 else
-  # Uninstall the Flatpak package with error handling
-  echo "Uninstalling the Flatpak package..."
-  flatpak uninstall --user --assumeyes $FLATPAK_ID
-
-  if [ $? -ne 0 ]; then
-    echo "Warning: Failed to uninstall the Flatpak package. Continuing with the rest of the uninstallation."
-  else
-    echo "Flatpak package uninstalled successfully."
-  fi
+  # Run flatpak uninstall in the background using nohup
+  echo "Uninstalling the Flatpak package in the background..."
+  nohup bash -c "flatpak uninstall --user --assumeyes $FLATPAK_ID" > /dev/null 2>&1 &
+  echo "Flatpak uninstallation running in the background."
 fi
 
 # Removing desktop file and icon
