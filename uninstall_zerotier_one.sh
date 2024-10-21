@@ -29,18 +29,11 @@ cleanup_console() {
 # Trap to cleanup console on exit
 trap cleanup_console EXIT
 
-# Ask user if they want to uninstall the ZeroTier One backend
-uninstall_backend_prompt=$(zenity --question --title="Uninstall ZeroTier One Backend" --text="Do you want to uninstall the ZeroTier One backend?" --ok-label="Yes" --cancel-label="No"; echo $?)
-
-if [ "$uninstall_backend_prompt" -eq 0 ]; then
-  if [ -f "$HOME/.zerotier-one/zerotier-one" ]; then
-    echo "Uninstalling ZeroTier One backend..."
-    uninstall_backend
-  else
-    echo "ZeroTier One backend is not installed."
-  fi
+if [ -f "$HOME/.zerotier-one/zerotier-one" ]; then
+  echo "Uninstalling ZeroTier One backend..."
+  uninstall_backend
 else
-  echo "Skipping ZeroTier One backend uninstallation."
+  echo "ZeroTier One backend is not installed."
 fi
 
 # Checking if Flatpak is installed
