@@ -13,12 +13,12 @@ uninstall_backend() {
   
   echo "Removing ZeroTier One backend files and peer files..."
   
-  # Use sudo to ensure we can remove files even if permission is required
-  sudo rm -rf $HOME/.zerotier-one
-  sudo rm $HOME/.config/systemd/user/zerotier-one.service
+  # Use pkexec to ensure we can remove files even if permission is required
+  pkexec rm -rf "$HOME/.zerotier-one"
+  pkexec rm "$HOME/.config/systemd/user/zerotier-one.service"
   
   echo "Removing sudo permission for ZeroTier One..."
-  sudo rm /etc/sudoers.d/zerotier
+  pkexec rm /etc/sudoers.d/zerotier
 
   echo "Backend uninstalled and peer files removed successfully."
 }
