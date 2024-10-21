@@ -52,14 +52,34 @@ systemctl --user enable --now zerotier-one.service
 
 }
 
+# Uninstall Function
+uninstall_backend() {
+  echo "Running the uninstall script..."
+  sh -c 'curl -s https://raw.githubusercontent.com/aaron777collins/ZeroTier-GUI-Arch/master/uninstall_zerotier_one.sh | bash'
+}
+
 # Function to clean up weird characters
 cleanup_console() {
   echo -e "\033[0m" # Reset console formatting
 }
 
-
 # Trap to cleanup console on exit
 trap cleanup_console EXIT
+
+# Option prompt
+action=$(zenity --list --title="Install or Uninstall ZeroTier GUI" --text="Choose an action:" --radiolist --column "Select" --column "Action" TRUE "Install" FALSE "Uninstall" FALSE "Cancel")
+
+if [ "$action" == "Uninstall" ]; then
+  echo "Selected: Uninstall"
+  uninstall_backend
+  exit 0
+fi
+if [ "$action" == "Cancel" ]; then
+  echo "Selected: Cancel. Exiting..."
+  exit 0
+fi
+
+echo "Selected: Install"
 
 # Ask the user if they need to set the sudo password or if it is already setup
 set_sudo_password=$(zenity --question --title="Sudo Password Setup" --text="Do you need to set the sudo password? Please select yes if you haven't set it before." --ok-label="Yes" --cancel-label="No"; echo $?)
