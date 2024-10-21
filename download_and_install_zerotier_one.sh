@@ -67,7 +67,7 @@ cleanup_console() {
 trap cleanup_console EXIT
 
 # Option prompt
-action=$(zenity --list --title="Install or Uninstall ZeroTier GUI" --text="Choose an action:" --radiolist --column "Select" --column "Action" TRUE "Install" FALSE "Uninstall" FALSE "Cancel")
+action=$(zenity --list --title="Install or Uninstall ZeroTier GUI" --text="Choose an action:" --radiolist --column "Select" --column "Action" TRUE "Install" FALSE "Uninstall" FALSE "Cancel" --height=300 --width=400)
 
 if [ "$action" == "Uninstall" ]; then
   echo "Selected: Uninstall"
