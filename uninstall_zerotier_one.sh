@@ -11,14 +11,16 @@ uninstall_backend() {
   systemctl --user stop zerotier-one.service
   systemctl --user disable zerotier-one.service
   
-  echo "Removing ZeroTier One backend files..."
-  rm -rf $HOME/.zerotier-one
-  rm $HOME/.config/systemd/user/zerotier-one.service
+  echo "Removing ZeroTier One backend files and peer files..."
+  
+  # Use sudo to ensure we can remove files even if permission is required
+  sudo rm -rf $HOME/.zerotier-one
+  sudo rm $HOME/.config/systemd/user/zerotier-one.service
   
   echo "Removing sudo permission for ZeroTier One..."
   sudo rm /etc/sudoers.d/zerotier
-  
-  echo "Backend uninstalled successfully."
+
+  echo "Backend uninstalled and peer files removed successfully."
 }
 
 # Function to clean up weird characters
@@ -29,8 +31,9 @@ cleanup_console() {
 # Trap to cleanup console on exit
 trap cleanup_console EXIT
 
+# Check if ZeroTier One is installed
 if [ -f "$HOME/.zerotier-one/zerotier-one" ]; then
-  echo "Uninstalling ZeroTier One backend..."
+  echo "Uninstalling ZeroTier One backend and cleaning peer files..."
   uninstall_backend
 else
   echo "ZeroTier One backend is not installed."
