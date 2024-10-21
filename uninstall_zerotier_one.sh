@@ -13,14 +13,18 @@ uninstall_backend() {
   
   echo "Removing ZeroTier One backend files and peer files..."
   
-  # Use pkexec to ensure we can remove files even if permission is required
-  pkexec rm -rf "$HOME/.zerotier-one"
-  pkexec rm "$HOME/.config/systemd/user/zerotier-one.service"
-  
-  echo "Removing sudo permission for ZeroTier One..."
-  pkexec rm /etc/sudoers.d/zerotier
+  # Group all privileged remove commands into a single pkexec call
+  pkexec bash -c "
+    rm -rf '$HOME/.zerotier-one';
+    rm '$HOME/.config/systemd/user/zerotier-one.service';
+    rm /etc/sudoers.d/zerotier
+  "
 
-  echo "Backend uninstalled and peer files removed successfully."
+  if [ $? -eq 0 ]; then
+    echo "Backend uninstalled and peer files removed successfully."
+  else
+    echo "Error: Failed to uninstall backend or remove peer files."
+  fi
 }
 
 # Function to clean up weird characters
