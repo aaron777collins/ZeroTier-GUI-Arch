@@ -222,7 +222,10 @@ class MainWindow:
         self.bottomFrame.pack(side="top", fill="x")
 
         # extra configuration
-        self.refresh_networks()
+        serviceEnabled = self.load_settings().get("service_enabled", True)
+
+        if serviceEnabled:
+            self.refresh_networks()
         self.update_service_label()
 
         self.networkList.config(yscrollcommand=self.networkListScrollbar.set)
@@ -771,7 +774,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.9"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
