@@ -771,7 +771,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.7"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.8"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1570,8 +1570,9 @@ def ask_sudo_password():
 def check_for_errors():
     settings = load_settings_no_class()
 
-    if (not settings.get("service_enabled", True)):
-        logging.info(f"service_enabled: {settings.get("service_enabled", True)}. Cancelling service check.")
+    serviceEnabled = settings.get("service_enabled", True)
+    if not serviceEnabled:
+        logging.info(f"service_enabled: {serviceEnabled}. Cancelling service check.")
         return
 
     logging.info("Starting error check: running 'zerotier-cli listnetworks'")
