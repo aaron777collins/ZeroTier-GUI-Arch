@@ -1496,6 +1496,89 @@ def ask_sudo_password():
 
     return password
 
+def check_for_errors():
+     # simple check for zerotier
+    while True:
+        try:
+            run_zerotier_cli("listnetworks")
+        # in case the command throws an error
+        except CalledProcessError as error:
+            # no zerotier authtoken
+            if error.returncode == 2:
+                messagebox.showinfo(
+                    title="Error",
+                    icon="error",
+                    message="This user doesn't have access to ZeroTier! Re-installing the backend...",
+                )
+                reinstall_backend()
+                continue
+            # service not running
+            if error.returncode == 1:
+                resolve_unknown_error()
+
+            # in case there's no command
+            if error.returncode == 127:
+                messagebox.showinfo(
+                    title="Error",
+                    message="ZeroTier isn't installed! Re-installing the backend...",
+                    icon="error",
+                )
+                reinstall_backend()
+                continue
+            break
+        except FileNotFoundError:
+            messagebox.showinfo(
+                    title="Error",
+                    message="ZeroTier isn't installed! Re-installing the backend...",
+                    icon="error",
+                )
+            reinstall_backend()
+            continue
+        break
+
+def resolve_unknown_error():
+    messagebox.showinfo(
+        title="Error",
+        icon="error",
+        message="The zerotier service isn't running! Attempting to fix the issue first by manually starting the backend service..",
+    )
+
+    # start the service
+    manage_service("start")
+
+    # check if the service is running (run_command(["systemctl", "--user", "is-active", "zerotier-one"])) and check if the response contains active or inactive
+    user = get_user().strip()
+    running = run_command(["systemctl", "--user", "is-active", "zerotier-one"], use_sudo=False, cdw=f"/home/{user}")
+    if "inactive" in running or "failed" in running:
+        messagebox.showinfo(
+            title="Error",
+            icon="error",
+            message="Failed to start the ZeroTier backend. To solve the issue, the backend will be re-installed...",
+        )
+        reinstall_backend()
+    else:
+        # The command wasn't detected as a failure. Trying the original test again
+        unknown_error_was_solved = False
+        try:
+            run_zerotier_cli("listnetworks")
+            unknown_error_was_solved = True
+        # in case the command throws an error
+        except CalledProcessError as error:
+            pass
+
+        if unknown_error_was_solved:
+            messagebox.showinfo(
+                title="Success",
+                icon="info",
+                message="Successfully started the ZeroTier backend and tested it works!",
+            )
+        else:
+            messagebox.showinfo(
+                title="Error",
+                icon="error",
+                message="An unknown error is preventing zerotier commands from executing. The backend service did not report the status as 'inactive' or 'failed'. The only solution left is to attempt re-installing the backend..",
+            )
+            reinstall_backend()
 
 if __name__ == "__main__":
     os.environ["FLATPAK_ID"] = "io.github.aaron777collins.zerotier-gui"
@@ -1549,69 +1632,7 @@ if __name__ == "__main__":
     disable_duplicate_zerotier()
 
     # simple check for zerotier
-    while True:
-        try:
-            run_zerotier_cli("listnetworks")
-        # in case the command throws an error
-        except CalledProcessError as error:
-            # no zerotier authtoken
-            if error.returncode == 2:
-                messagebox.showinfo(
-                    title="Error",
-                    icon="error",
-                    message="This user doesn't have access to ZeroTier! Re-installing the backend...",
-                )
-                reinstall_backend()
-                continue
-            # service not running
-            if error.returncode == 1:
-                messagebox.showinfo(
-                    title="Error",
-                    icon="error",
-                    message="The zerotier service isn't running! Starting the backend...",
-                )
-
-                # start the service
-                manage_service("start")
-
-                # check if the service is running (run_command(["systemctl", "--user", "is-active", "zerotier-one"])) and check if the response contains active or inactive
-                user = get_user().strip()
-                running = run_command(["systemctl", "--user", "is-active", "zerotier-one"], use_sudo=False, cdw=f"/home/{user}")
-                if "inactive" in running or "failed" in running:
-                    messagebox.showinfo(
-                        title="Error",
-                        icon="error",
-                        message="Failed to start the ZeroTier backend. Re-installing the backend...",
-                    )
-                    reinstall_backend()
-                    continue
-                else:
-                    messagebox.showinfo(
-                        title="Success",
-                        icon="info",
-                        message="Successfully started the ZeroTier backend.",
-                    )
-                    continue
-
-            # in case there's no command
-            if error.returncode == 127:
-                messagebox.showinfo(
-                    title="Error",
-                    message="ZeroTier isn't installed! Re-installing the backend...",
-                    icon="error",
-                )
-                reinstall_backend()
-                continue
-            break
-        except FileNotFoundError:
-            messagebox.showinfo(
-                    title="Error",
-                    message="ZeroTier isn't installed! Re-installing the backend...",
-                    icon="error",
-                )
-            reinstall_backend()
-            continue
-        break
+    check_for_errors()
     # destroy temporary window
     tmp.destroy()
     # create mainwindow class and execute the mainloop
