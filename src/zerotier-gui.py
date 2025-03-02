@@ -281,6 +281,7 @@ class MainWindow:
         state = self.get_service_status()
         if state == "active":
             manage_service("stop")
+            manage_service("disable")
             # Update setting to indicate the service is now disabled
             self.settings['service_enabled'] = False
             logging.info("Service stopped. Setting 'service_enabled' set to False.")
@@ -774,7 +775,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
