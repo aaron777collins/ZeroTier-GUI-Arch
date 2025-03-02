@@ -76,6 +76,17 @@ logging.basicConfig(
     ]
 )
 
+def load_settings_no_class():
+    settings_dir = os.path.expanduser("~/.config/zerotier-gui")
+    os.makedirs(settings_dir, exist_ok=True)
+    settings_file = os.path.join(settings_dir, "settings.json")
+    try:
+        with open(settings_file, "r") as f:
+            settings = json.load(f)
+    except (FileNotFoundError, JSONDecodeError):
+        settings = {}  # generate defaults if needed
+    return settings
+
 BACKGROUND = "#d9d9d9"
 FOREGROUND = "black"
 BUTTON_BACKGROUND = "#ffb253"
@@ -85,7 +96,6 @@ HISTORY_FILE_DIRECTORY = path.expanduser("~/.local/share/zerotier-gui")
 HISTORY_FILE_NAME = "network_history.json"
 
 DEBUG_MODE = False
-
 
 class MainWindow:
     def __init__(self):
@@ -242,13 +252,44 @@ class MainWindow:
             except JSONDecodeError:
                 self.network_history = {}
 
+    def load_settings(self):
+        settings_dir = os.path.expanduser("~/.config/zerotier-gui")
+        os.makedirs(settings_dir, exist_ok=True)
+        settings_file = os.path.join(settings_dir, "settings.json")
+        try:
+            with open(settings_file, "r") as f:
+                settings = json.load(f)
+        except (FileNotFoundError, JSONDecodeError):
+            settings = {}  # generate defaults if needed
+        return settings
+
+    def save_settings(self):
+        settings_dir = os.path.expanduser("~/.config/zerotier-gui")
+        os.makedirs(settings_dir, exist_ok=True)
+        settings_file = os.path.join(settings_dir, "settings.json")
+        with open(settings_file, "w") as f:
+            json.dump(self.settings, f, indent=4)
+
     def toggle_service(self):
+        # Load settings if not already loaded
+        if not hasattr(self, 'settings'):
+            self.settings = self.load_settings()
+
         state = self.get_service_status()
         if state == "active":
             manage_service("stop")
+            # Update setting to indicate the service is now disabled
+            self.settings['service_enabled'] = False
+            logging.info("Service stopped. Setting 'service_enabled' set to False.")
         else:
             manage_service("start")
+            # Update setting to indicate the service is now enabled
+            self.settings['service_enabled'] = True
+            logging.info("Service started. Setting 'service_enabled' set to True.")
+
         self.update_service_label()
+        # Save the updated settings to file
+        self.save_settings()
 
     def get_service_status(self):
         data = manage_service("show").split("\n")
@@ -727,7 +768,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.5"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.6"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1310,7 +1351,8 @@ def manage_service(action, cdw=None):
             )
 
 def reinstall_backend():
-
+    ensure_log_folder_exists()
+    logging.info("Attempting to re-install the backend..")
     user = get_user().strip()
     cdwPath = f"/home/{user}"
 
@@ -1361,10 +1403,7 @@ def reinstall_backend():
     # start service
     manage_service("enable")
     manage_service("start")
-
-
-
-
+    logging.info("The backend has been re-installed!")
 
 def get_user():
     return pwd.getpwuid(os.getuid())[0]
@@ -1526,6 +1565,12 @@ def ask_sudo_password():
     return password
 
 def check_for_errors():
+    settings = load_settings_no_class()
+
+    if (not settings["service_enabled"]):
+        logging.info(f"service_enabled: {settings["service_enabled"]}. Cancelling service check.")
+        return
+
     logging.info("Starting error check: running 'zerotier-cli listnetworks'")
     while True:
         try:
@@ -1636,16 +1681,20 @@ if __name__ == "__main__":
 
     SUDO_PASSWORD = ask_sudo_password()
 
-    # while loop, forcing the user to give a proper sudo password
+    ensure_log_folder_exists()
 
+    # while loop, forcing the user to give a proper sudo password
     while True:
         try:
+            logging.info("Running a basic system command: 'true' to test if our credentials work")
             run_command(["true"])
             break
         except CalledProcessError:
+            logging.warning("Auth error. Getting the sudo password and trying again.")
             SUDO_PASSWORD = ask_sudo_password()
         except FileNotFoundError:
-            messagebox.showinfo(
+            logging.error("Could not find the zerotier-one backend! Re-installing it..")
+            messagebox.showerror(
                     title="Error",
                     message="ZeroTier isn't installed! Re-installing the backend...",
                     icon="error",
@@ -1653,26 +1702,13 @@ if __name__ == "__main__":
             reinstall_backend()
             continue
         except Exception as e:
-            # Tell the user the error like "message=f"An error while trying to run any basic commands. Please report the following error: {e} on Github. You can also try re-installing the backend to see if that fixes it.
-            # Ask them if they'd like to try it (yes/no)
-            # If they say yes, reinstall the backend
-            # If they say no, tell them to report the error on Github
-            fixResponse = messagebox.askyesno(
+            messagebox.showerror(
                 title="Error",
-                message=f"An error occurred while trying to run basic commands. Please report the following error: {e} on the ZeroTier-Arch Github.\n\nOptionally: you can try self diagnosis:\nWould you like to try re-installing the backend?",
+                message=f"An unexpected error has occurred while trying to run a basic command on your system! I recommend running the installer again and choosing to uninstall the program and then re-install it from scratch. \n\nIf the issue persists please report the error on the ZeroTier-Arch Github: {e}\n\nLink: https://github.com/aaron777collins/ZeroTier-GUI-Arch/issues/new\n\n You can find the logs at ~/.local/state/zerotier-gui/logs.",
                 icon="error",
             )
-            if fixResponse:
-                reinstall_backend()
-                continue
-            else:
-                messagebox.showinfo(
-                    title="Error",
-                    message=f"Please report the error on the ZeroTier-Arch Github: {e}\n\nLink: https://github.com/aaron777collins/ZeroTier-GUI-Arch/issues/new",
-                    icon="error",
-                )
-                exit(1)
-            continue
+            exit(1)
+            break
 
     # Check for Root level ZeroTier installation (from other installations, etc.) and disable it
     disable_duplicate_zerotier()
