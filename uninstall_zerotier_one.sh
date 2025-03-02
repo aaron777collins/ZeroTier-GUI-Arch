@@ -44,6 +44,23 @@ remove_logs() {
   fi
 }
 
+# Remove configuration function
+remove_configuration() {
+  # Logs are assumed to be stored in $HOME/.local/state/zerotier-gui
+  CONFIG_DIR="$HOME/.config/zerotier-gui"
+  if [ -d "$CONFIG_DIR" ]; then
+    echo "Removing log files from $CONFIG_DIR..."
+    rm -rf "$CONFIG_DIR"
+    if [ $? -eq 0 ]; then
+      echo "Configuration files removed successfully."
+    else
+      echo "Error: Failed to remove configuration files."
+    fi
+  else
+    echo "Configuration directory not found, skipping configuration removal."
+  fi
+}
+
 # Function to clean up weird characters
 cleanup_console() {
   echo -e "\033[0m" # Reset console formatting
@@ -62,6 +79,9 @@ fi
 
 # Remove logs
 remove_logs
+
+# Remove configuration
+remove_configuration
 
 # Checking if Flatpak is installed
 if ! command -v flatpak &> /dev/null; then
