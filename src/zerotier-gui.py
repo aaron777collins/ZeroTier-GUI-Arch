@@ -727,7 +727,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.4"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.5"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1526,14 +1526,17 @@ def ask_sudo_password():
     return password
 
 def check_for_errors():
-     # simple check for zerotier
+    logging.info("Starting error check: running 'zerotier-cli listnetworks'")
     while True:
         try:
             run_zerotier_cli("listnetworks")
-        # in case the command throws an error
+            logging.info("ZeroTier 'listnetworks' command succeeded; no errors detected.")
         except CalledProcessError as error:
+            error_output = error.output.decode().strip() if error.output else ""
+            logging.error(f"'listnetworks' failed with return code {error.returncode}: {error_output}")
             # no zerotier authtoken
             if error.returncode == 2:
+                logging.error("User lacks ZeroTier access (return code 2). Re-installing backend.")
                 messagebox.showinfo(
                     title="Error",
                     icon="error",
@@ -1543,42 +1546,56 @@ def check_for_errors():
                 continue
             # service not running
             if error.returncode == 1:
+                logging.error("ZeroTier service not running (return code 1). Attempting to resolve unknown error.")
                 resolve_unknown_error()
-
             # in case there's no command
             if error.returncode == 127:
+                logging.error("ZeroTier command not found (return code 127). Re-installing backend.")
                 messagebox.showinfo(
                     title="Error",
-                    message="ZeroTier isn't installed! Re-installing the backend...",
                     icon="error",
+                    message="ZeroTier isn't installed! Re-installing the backend...",
                 )
                 reinstall_backend()
                 continue
             break
-        except FileNotFoundError:
+        except FileNotFoundError as fnfe:
+            logging.error(f"FileNotFoundError encountered: {fnfe}. ZeroTier isn't installed. Re-installing backend.")
             messagebox.showinfo(
-                    title="Error",
-                    message="ZeroTier isn't installed! Re-installing the backend...",
-                    icon="error",
-                )
+                title="Error",
+                icon="error",
+                message="ZeroTier isn't installed! Re-installing the backend...",
+            )
             reinstall_backend()
             continue
         break
 
+
 def resolve_unknown_error():
+    logging.info("Resolving unknown error: ZeroTier service appears to be not running. Attempting to start the backend service.")
     messagebox.showinfo(
         title="Error",
         icon="error",
-        message="The zerotier service isn't running! Attempting to fix the issue first by manually starting the backend service..",
+        message="The zerotier service isn't running! Attempting to fix the issue by manually starting the backend service...",
     )
 
     # start the service
     manage_service("start")
-
-    # check if the service is running (run_command(["systemctl", "--user", "is-active", "zerotier-one"])) and check if the response contains active or inactive
+    
     user = get_user().strip()
+    logging.info("Checking service status after attempting to start it.")
     running = run_command(["systemctl", "--user", "is-active", "zerotier-one"], use_sudo=False, cdw=f"/home/{user}")
+    running = running.strip()
+    logging.info(f"Service status output: {running}")
+    try:
+        logs = run_command(["journalctl", "--user", "-u", "zerotier-one", "--no-pager"], use_sudo=False, cdw=f"/home/{user}")
+        logging.debug("Service logs:\n" + logs)
+    except Exception as serviceLogsError:
+        error_output = serviceLogsError.output.decode().strip() if serviceLogsError.output else ""
+        logging.error(f"Failed to log the backend service logs. return code {serviceLogsError.returncode}: {error_output}")
+
     if "inactive" in running or "failed" in running:
+        logging.error("Service status is 'inactive' or 'failed'. Backend did not start properly. Re-installing backend.")
         messagebox.showinfo(
             title="Error",
             icon="error",
@@ -1586,26 +1603,28 @@ def resolve_unknown_error():
         )
         reinstall_backend()
     else:
-        # The command wasn't detected as a failure. Trying the original test again
         unknown_error_was_solved = False
         try:
             run_zerotier_cli("listnetworks")
             unknown_error_was_solved = True
-        # in case the command throws an error
+            logging.info("Backend appears to be working after starting the service (listnetworks succeeded).")
         except CalledProcessError as error:
-            pass
-
+            error_output = error.output.decode().strip() if error.output else ""
+            logging.error(f"After starting service, 'listnetworks' still failed with return code {error.returncode}: {error_output}")
+        
         if unknown_error_was_solved:
+            logging.info("Unknown error resolved; backend is functioning correctly.")
             messagebox.showinfo(
                 title="Success",
                 icon="info",
-                message="Successfully started the ZeroTier backend and tested it works!",
+                message="Successfully started the ZeroTier backend and confirmed it works!",
             )
         else:
+            logging.error("Unknown error persists. The backend service did not report 'inactive' or 'failed' but commands still fail. Re-installing backend.")
             messagebox.showinfo(
                 title="Error",
                 icon="error",
-                message="An unknown error is preventing zerotier commands from executing. The backend service did not report the status as 'inactive' or 'failed'. The only solution left is to attempt re-installing the backend..",
+                message="An unknown error is preventing zerotier commands from executing. The only solution left is to attempt re-installing the backend.",
             )
             reinstall_backend()
 
