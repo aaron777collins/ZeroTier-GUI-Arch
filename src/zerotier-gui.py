@@ -771,7 +771,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.8"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.9"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1492,12 +1492,18 @@ def disable_duplicate_zerotier():
 
 def run_zerotier_cli(*args, stderr_to_stdout=False):
     ensure_log_folder_exists()
+
     user = get_user().strip()
     command = ['sudo', '-S', './zerotier-cli', f"-D/home/{user}/.zerotier-one"] + list(args)
     logging.debug(f"Initial command: {command}")
     if not DEBUG_MODE:
         command = ['flatpak-spawn', '--host'] + command
     logging.debug(f"Final command: {command}")
+
+    serviceEnabled = load_settings_no_class().get("service_enabled", True)
+    if not serviceEnabled:
+        logging.debug(f"The zerotier-one service is set as {serviceEnabled}. Ignoring command.")
+        return ""
     stderr = STDOUT if stderr_to_stdout else PIPE
     process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd=f"/home/{user}/.zerotier-one")
     stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
