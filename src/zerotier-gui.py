@@ -55,6 +55,26 @@ from datetime import datetime
 import textwrap
 import os
 import pwd
+import logging
+from pathlib import Path
+
+# Ensure the log directory exists
+log_dir = Path(os.path.expanduser("~/.local/state/zerotier-gui/logs"))
+def ensure_log_folder_exists():
+    if not os.path.exists(log_dir):
+        log_dir.mkdir(parents=True, exist_ok=True)
+        logging.warning(f"Path {log_dir} did not exist. Creating it for logging purposes..")
+ensure_log_folder_exists()
+log_file = log_dir / "guilogs.log"
+
+logging.basicConfig(
+    level=logging.DEBUG,  # Adjust the level as needed (INFO, DEBUG, etc.)
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler(sys.stdout)  # Optional: also log to stdout
+    ]
+)
 
 BACKGROUND = "#d9d9d9"
 FOREGROUND = "black"
@@ -373,9 +393,7 @@ class MainWindow:
 
     def get_networks_info(self):
         res = run_zerotier_cli("-j", "listnetworks")
-        # print(res)
         resj = json.loads(res)
-        # print(resj)
         return resj
 
     def get_peers_info(self):
@@ -709,7 +727,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.3"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.7.4"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -777,11 +795,8 @@ class MainWindow:
 
     def get_interface_state(self, interface):
         res = run_command(["ip", "--json", "address"])
-        # print(res)
         sres = res.strip()
-        # print(sres)
         jres = json.loads(sres)
-        # print(jres)
         interfaceInfo = jres
         for info in interfaceInfo:
             if info["ifname"] == interface:
@@ -1269,21 +1284,29 @@ class TreeView(ttk.Treeview):
 
 
 def manage_service(action, cdw=None):
-
+    ensure_log_folder_exists()
     user = get_user().strip()
     cdwPath = f"/home/{user}" if cdw is None else cdw
 
+    logging.info(f"manage_service: Attempting to {action} 'zerotier-one' service in {cdwPath}")
+
     # try as user
     try:
-        return run_command(["systemctl", "--user", action, "zerotier-one"], use_sudo=False, cdw=cdwPath)
-    except CalledProcessError:
+        result = run_command(["systemctl", "--user", action, "zerotier-one"], use_sudo=False, cdw=cdwPath)
+        logging.info(f"manage_service: Successfully executed user-level command for {action} on 'zerotier-one'")
+        return result
+    except CalledProcessError as user_error:
+        logging.warning(f"manage_service: User-level command failed for {action} on 'zerotier-one': {user_error}")
         # try as system
         try:
-            return run_command(["systemctl", action, "zerotier-one"], cdw=cdwPath)
-        except CalledProcessError as error:
-            error = error.output.decode().strip()
+            result = run_command(["systemctl", action, "zerotier-one"], cdw=cdwPath)
+            logging.info(f"manage_service: Successfully executed system-level command for {action} on 'zerotier-one'")
+            return result
+        except CalledProcessError as sys_error:
+            error_message = sys_error.output.decode().strip()
+            logging.error(f"manage_service: System-level command failed for {action} on 'zerotier-one': {error_message}")
             messagebox.showinfo(
-                title="Error", message=f'Error: "{error}"', icon="error"
+                title="Error", message=f'Error: "{error_message}"', icon="error"
             )
 
 def reinstall_backend():
@@ -1299,9 +1322,9 @@ def reinstall_backend():
         # Check if error code is 5
         if error.returncode == 5:
             # The service could not be loaded
-            print(f"Service could not be loaded: {error}, error.returncode: {error.returncode}")
+            logging.error(f"Service could not be loaded: {error}, error.returncode: {error.returncode}")
         else:
-            print("An unknown error occurred while trying to stop and disable the ZeroTier service. Skipping the stop/disable step and proceeding with the re-installation of the backend service anyways.")
+            logging.error("An unknown error occurred while trying to stop and disable the ZeroTier service. Skipping the stop/disable step and proceeding with the re-installation of the backend service anyways.")
 
     # Run download_and_reinstall_backend.sh as regular user using bash
     try:
@@ -1347,14 +1370,16 @@ def get_user():
     return pwd.getpwuid(os.getuid())[0]
 
 def run_command(command, use_sudo=True, cdw=None):
+    ensure_log_folder_exists()
     user = get_user().strip()
 
     cdwPath = f"/home/{user}/.zerotier-one" if cdw is None else cdw
 
-    print(f"Original command: {command}, cdwPath: {cdwPath}, use_sudo: {use_sudo}")
+    logging.info(f"Running command: {command} in {cdwPath} (sudo: {use_sudo})")
 
     # Check if /home/<user>/.zerotier-one exists
     if not os.path.exists(cdwPath):
+        logging.error(f"Path {cdwPath} does not exist")
         raise FileNotFoundError(f"Path {cdwPath} does not exist")
 
     # Add prefixes
@@ -1365,7 +1390,7 @@ def run_command(command, use_sudo=True, cdw=None):
     if not DEBUG_MODE:
         command = ['flatpak-spawn', '--host'] + command
 
-    print(f"Running command: {command}")
+    logging.debug(f"Running command: {command}")
     process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cdwPath)
 
     if use_sudo:
@@ -1378,10 +1403,10 @@ def run_command(command, use_sudo=True, cdw=None):
         # If none, print None otherwise decode
         stdoutStr = stdout.decode().replace(f"[sudo] password for {get_user()}: ", "") if stdout is not None else None
         stderrStr = stderr.decode() if stderr is not None else None
-        print(f'stdout: {stdoutStr}, stderr: {stderrStr}, process.returncode: {process.returncode}')
+        logging.debug(f'stdout: {stdoutStr}, stderr: {stderrStr}, process.returncode: {process.returncode}')
     except Exception as e:
-        print("An error occurred while trying to print the stdout, stderr, and process.returncode. Printing in raw format instead.")
-        print(f"stdout: {stdout}, stderr: {stderr}, process.returncode: {process.returncode}")
+        logging.error("An error occurred while trying to print the stdout, stderr, and process.returncode. Printing in raw format instead.")
+        logging.error(f"stdout: {stdout}, stderr: {stderr}, process.returncode: {process.returncode}")
 
     if process.returncode != 0:
         raise CalledProcessError(process.returncode, command, output=stdout)
@@ -1398,7 +1423,7 @@ def disable_duplicate_zerotier():
         res = run_command(["systemctl", "is-active", "zerotier-one"])
 
         if "active" in res:
-            print("Duplicate ZeroTier service detected. Asking user for permission to disable it.")
+            logging.warning("Duplicate ZeroTier service detected. Asking user for permission to disable it.")
             # Ask the user if they'd like to disable the duplicate ZeroTier service
             disableResponse = messagebox.askyesno(
                 title="Duplicate ZeroTier Service Detected",
@@ -1408,10 +1433,10 @@ def disable_duplicate_zerotier():
 
             if disableResponse:
                 # Disable the duplicate ZeroTier service
-                print("Disabling the duplicate ZeroTier service.")
+                logging.debug("Disabling the duplicate ZeroTier service.")
                 run_command(["systemctl", "disable", "zerotier-one"])
                 run_command(["systemctl", "stop", "zerotier-one"])
-                print("Disabled the duplicate ZeroTier service.")
+                logging.debug("Disabled the duplicate ZeroTier service.")
                 # Tell the user that the duplicate ZeroTier service has been disabled
                 messagebox.showinfo(
                     title="Duplicate ZeroTier Service Disabled",
@@ -1419,19 +1444,23 @@ def disable_duplicate_zerotier():
                     icon="info",
                 )
     except Exception as e:
-        print(f"An unknown error occurred while trying to check if the ZeroTier service is running. Error: {e}")
+        logging.error(f"An unknown error occurred while trying to check if the ZeroTier service is running. Error: {e}")
         return
 
 
 def run_zerotier_cli(*args, stderr_to_stdout=False):
+    ensure_log_folder_exists()
     user = get_user().strip()
     command = ['sudo', '-S', './zerotier-cli', f"-D/home/{user}/.zerotier-one"] + list(args)
+    logging.debug(f"Initial command: {command}")
     if not DEBUG_MODE:
         command = ['flatpak-spawn', '--host'] + command
+    logging.debug(f"Final command: {command}")
     stderr = STDOUT if stderr_to_stdout else PIPE
     process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd=f"/home/{user}/.zerotier-one")
     stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
     if process.returncode != 0:
+        logging.error(f"Command failed with return code {process.returncode}")
         raise CalledProcessError(process.returncode, command, output=stdout)
     return stdout.decode()
 
@@ -1587,7 +1616,6 @@ if __name__ == "__main__":
     tmp.withdraw()
 
     SUDO_PASSWORD = ask_sudo_password()
-    print(f"Entered password: {SUDO_PASSWORD}")
 
     # while loop, forcing the user to give a proper sudo password
 
@@ -1597,7 +1625,6 @@ if __name__ == "__main__":
             break
         except CalledProcessError:
             SUDO_PASSWORD = ask_sudo_password()
-            print(f"Entered password: {SUDO_PASSWORD}")
         except FileNotFoundError:
             messagebox.showinfo(
                     title="Error",

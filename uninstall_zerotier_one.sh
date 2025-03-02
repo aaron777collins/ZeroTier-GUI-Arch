@@ -27,6 +27,23 @@ uninstall_backend() {
   fi
 }
 
+# Remove logs function
+remove_logs() {
+  # Logs are assumed to be stored in $HOME/.local/state/zerotier-gui
+  LOG_DIR="$HOME/.local/state/zerotier-gui"
+  if [ -d "$LOG_DIR" ]; then
+    echo "Removing log files from $LOG_DIR..."
+    rm -rf "$LOG_DIR"
+    if [ $? -eq 0 ]; then
+      echo "Log files removed successfully."
+    else
+      echo "Error: Failed to remove log files."
+    fi
+  else
+    echo "Log directory not found, skipping log removal."
+  fi
+}
+
 # Function to clean up weird characters
 cleanup_console() {
   echo -e "\033[0m" # Reset console formatting
@@ -42,6 +59,9 @@ if [ -f "$HOME/.zerotier-one/zerotier-one" ]; then
 else
   echo "ZeroTier One backend is not installed."
 fi
+
+# Remove logs
+remove_logs
 
 # Checking if Flatpak is installed
 if ! command -v flatpak &> /dev/null; then
