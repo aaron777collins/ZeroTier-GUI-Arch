@@ -56,6 +56,7 @@ import textwrap
 import os
 import pwd
 import logging
+import re
 from pathlib import Path
 
 # Ensure the log directory exists
@@ -86,6 +87,40 @@ def load_settings_no_class():
     except (FileNotFoundError, JSONDecodeError):
         settings = {}  # generate defaults if needed
     return settings
+
+def extract_first_json(payload: str) -> str | None:
+    """
+    Cleans payload by removing '[sudo]' lines and any text up to the first opening JSON bracket,
+    then extracts and returns the first complete JSON object or list as a string.
+
+    Args:
+        payload (str): Raw output string that may contain extra lines and JSON content.
+
+    Returns:
+        str | None: A clean JSON string suitable for json.loads(), or None if no valid JSON found.
+    """
+    # Remove '[sudo]' and everything up to the next { or [
+    payload = re.sub(r'\[sudo\][^\{\[]*', '', payload, flags=re.DOTALL)
+
+    # Now extract the first complete JSON object or list using bracket balance
+    stack = []
+    start_idx = None
+
+    for i, char in enumerate(payload):
+        if char in ['{', '[']:
+            if not stack:
+                start_idx = i
+            stack.append(char)
+        elif char in ['}', ']']:
+            if not stack:
+                continue
+            open_char = stack.pop()
+            if (open_char == '{' and char != '}') or (open_char == '[' and char != ']'):
+                continue
+            if not stack:
+                return payload[start_idx:i+1]
+
+    return None
 
 BACKGROUND = "#d9d9d9"
 FOREGROUND = "black"
@@ -438,11 +473,11 @@ class MainWindow:
 
     def get_networks_info(self):
         res = run_zerotier_cli("-j", "listnetworks")
-        resj = json.loads(res)
+        resj = json.loads(extract_first_json(res))
         return resj
 
     def get_peers_info(self):
-        return json.loads(run_zerotier_cli("-j", "peers"))
+        return json.loads(extract_first_json(run_zerotier_cli("-j", "peers")))
 
     def launch_sub_window(self, title):
         subWindow = tk.Toplevel(self.window, class_="zerotier-gui")
@@ -844,7 +879,7 @@ class MainWindow:
     def get_interface_state(self, interface):
         res = run_command(["ip", "--json", "address"])
         sres = res.strip()
-        jres = json.loads(sres)
+        jres = json.loads(extract_first_json(sres))
         interfaceInfo = jres
         for info in interfaceInfo:
             if info["ifname"] == interface:
