@@ -155,7 +155,7 @@ flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flath
 
 # Install the necessary runtime at the user level
 echo "Installing the necessary runtime..."
-flatpak install --user -y flathub org.gnome.Platform/x86_64/46 2>&1 | tee /dev/null
+flatpak install --user -y flathub org.gnome.Platform/x86_64/49 2>&1 | tee /dev/null
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to install the necessary runtime."
