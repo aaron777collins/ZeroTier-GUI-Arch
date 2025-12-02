@@ -876,7 +876,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.8"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.9"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1625,24 +1625,22 @@ def get_current_zerotier_port():
         int: The current port number, or 9993 if not set
     """
     try:
-        zerotier_base = get_zerotier_base_path()
-        
-        # Check if the base directory exists
-        if not os.path.exists(zerotier_base):
-            logging.debug(f"ZeroTier base directory does not exist: {zerotier_base}. Using default port 9993.")
+        zerotier_backend = get_zerotier_backend_path()
+
+        if not os.path.exists(zerotier_backend) or not os.path.isdir(zerotier_backend):
+            logging.error(f"ZeroTier backend directory does not exist: {zerotier_backend}. Using default port 9993.. but this should be impossible!!")
             return 9993
         
-        local_conf_path = os.path.join(zerotier_base, "local.conf")
+        local_conf_path = os.path.join(zerotier_backend, "zerotier-one.port")
         
-        if os.path.exists(local_conf_path) and os.path.isfile(local_conf_path):
-            with open(local_conf_path, 'r') as f:
-                try:
-                    config = json.load(f)
-                    return config.get("settings", {}).get("primaryPort", 9993)
-                except JSONDecodeError:
-                    logging.warning(f"local.conf exists but is not valid JSON. Using default port 9993.")
-                    return 9993
-        return 9993
+        if not os.path.exists(local_conf_path) or not os.path.isfile(local_conf_path):
+            # create the file with the default port 9993
+            with open(local_conf_path, 'w') as f:
+                f.write("9993")
+        
+        # read the port from the file
+        with open(local_conf_path, 'r') as f:
+            return int(f.read().strip())
     except Exception as e:
         logging.error(f"Failed to read current ZeroTier port: {e}")
         return 9993
@@ -1660,61 +1658,38 @@ def modify_zerotier_port(new_port):
     ensure_log_folder_exists()
     
     try:
-        zerotier_base = get_zerotier_base_path()
+        zerotier_backend = get_zerotier_backend_path()
         
-        # Check if the base directory exists
-        if not os.path.exists(zerotier_base):
-            logging.error(f"Cannot modify ZeroTier port: base directory does not exist: {zerotier_base}")
+        if not os.path.exists(zerotier_backend) or not os.path.isdir(zerotier_backend):
+            logging.error(f"ZeroTier backend directory does not exist: {zerotier_backend}. Using default port 9993.. but this should be impossible!!")
             return False
         
-        # Ensure it's a directory, not a file
-        if not os.path.isdir(zerotier_base):
-            logging.error(f"Cannot modify ZeroTier port: path exists but is not a directory: {zerotier_base}")
-            return False
-        
-        local_conf_path = os.path.join(zerotier_base, "local.conf")
-        
-        current_port = get_current_zerotier_port()
-        
-        # If already set to the target port, no need to change
+        local_conf_path = os.path.join(zerotier_backend, "zerotier-one.port")
+
+        if not os.path.exists(local_conf_path) or not os.path.isfile(local_conf_path):
+            # create the file with the default port 9993
+            with open(local_conf_path, 'w') as f:
+                # write the port to the file
+                f.write(str(new_port))
+                logging.info(f"Successfully created ZeroTier port file with port {new_port}")
+                return True
+
+        # read current port from the file
+        with open(local_conf_path, 'r') as f:
+            current_port = int(f.read().strip())
+
+        # if the current port is the same as the new port, return True
         if current_port == new_port:
             logging.info(f"ZeroTier port is already set to {new_port}. No change needed.")
             return True
-        
-        logging.info(f"Attempting to modify ZeroTier port from {current_port} to {new_port} in {local_conf_path}")
-        
-        # Read existing config or create new one
-        config = {}
-        if os.path.exists(local_conf_path) and os.path.isfile(local_conf_path):
-            try:
-                with open(local_conf_path, 'r') as f:
-                    try:
-                        config = json.load(f)
-                    except JSONDecodeError:
-                        logging.warning(f"local.conf exists but is not valid JSON. Creating new config.")
-                        config = {}
-            except (IOError, OSError) as e:
-                logging.warning(f"Failed to read existing local.conf: {e}. Creating new config.")
-                config = {}
-        
-        # Ensure settings object exists
-        if "settings" not in config:
-            config["settings"] = {}
-        
-        # Update the port
-        config["settings"]["primaryPort"] = new_port
-        
-        # Write back to file
-        try:
-            with open(local_conf_path, 'w') as f:
-                json.dump(config, f, indent=2)
-        except (IOError, OSError) as e:
-            logging.error(f"Failed to write local.conf: {e}")
-            return False
+
+        # if the current port is not the same as the new port, write the new port to the file
+        # write the port to the file
+        with open(local_conf_path, 'w') as f:
+            f.write(str(new_port))
         
         logging.info(f"Successfully changed ZeroTier port from {current_port} to {new_port}")
         return True
-        
     except Exception as e:
         logging.error(f"Failed to modify ZeroTier port: {e}")
         return False
