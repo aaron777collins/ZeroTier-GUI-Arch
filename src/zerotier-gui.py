@@ -876,7 +876,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.9"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.0"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1879,6 +1879,40 @@ def check_for_errors():
             continue
         break
 
+def static_service_show_status():
+    data = manage_service("show").split("\n")
+    formatted_data = {}
+    for entry in data:
+        key_value = entry.split("=", 1)
+        if len(key_value) == 2:
+            formatted_data[key_value[0]] = key_value[1]
+
+    logging.info(f"Service status using systemctl show: {formatted_data}")
+    return formatted_data["ActiveState"]
+
+def static_service_is_active():
+    user = get_user().strip()
+    running = run_command(["systemctl", "--user", "is-active", "zerotier-one"], use_sudo=False, cdw=f"/home/{user}")
+    running = running.strip()
+    logging.info(f"Service status output: {running}")
+    if "inactive" in running:
+        return "inactive"
+    if "failed" in running:
+        return "failed"
+    return "active"
+
+def find_problem():
+    running = static_service_is_active()
+    if "inactive" in running or "failed" in running:
+        logging.error(f"ZeroTier service is not running. Problem found: {running}")
+        return running
+
+    service_show_status = static_service_show_status()
+    if "failed" in service_show_status or "inactive" in service_show_status:
+        logging.error("ZeroTier service is not running. Problem found: {service_show_status}")
+        return service_show_status
+    return ""
+
 
 def resolve_unknown_error():
     logging.info("Resolving unknown error: ZeroTier service appears to be not running. Attempting to start the backend service.")
@@ -1903,7 +1937,7 @@ def resolve_unknown_error():
         error_output = serviceLogsError.output.decode().strip() if serviceLogsError.output else ""
         logging.error(f"Failed to log the backend service logs. return code {serviceLogsError.returncode}: {error_output}")
 
-    if "inactive" in running or "failed" in running:
+    if find_problem() != "":
         # Try changing port before re-installing - try up to 5 ports starting from 9993
         current_port = get_current_zerotier_port()
         all_ports = list(range(9993, 10000))
@@ -1933,12 +1967,8 @@ def resolve_unknown_error():
             # Wait a moment for service to start
             time.sleep(2)
             
-            # Check status again after port change
-            running = run_command(["systemctl", "--user", "is-active", "zerotier-one"], use_sudo=False, cdw=f"/home/{user}")
-            running = running.strip()
-            logging.info(f"Service status after port change to {new_port}: {running}")
-            
-            if "inactive" in running or "failed" in running:
+            # Check if the service is still having problems
+            if find_problem() != "":
                 logging.warning(f"Service still failed to start with port {new_port}. Trying next port.")
                 continue
             
