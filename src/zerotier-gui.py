@@ -876,7 +876,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.1"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.2"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1880,6 +1880,12 @@ def check_for_errors():
                 reinstall_backend()
                 continue
             break
+
+            # In case an unknown error occurred
+            # we will try resolving the error
+            logging.error("Detected an error while checking the status of the backend service. Attempting to resolve the issue...")
+            resolve_unknown_error()
+            continue
         except FileNotFoundError as fnfe:
             logging.error(f"FileNotFoundError encountered: {fnfe}. ZeroTier isn't installed. Re-installing backend.")
             messagebox.showinfo(
