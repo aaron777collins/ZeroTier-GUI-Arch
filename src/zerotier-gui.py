@@ -310,8 +310,13 @@ class MainWindow:
             json.dump(self.settings, f, indent=4)
 
     def toggle_service(self):
+        # Load settings if not already loaded
+        if not hasattr(self, 'settings'):
+            self.settings = self.load_settings()
+
+        state = self.get_service_status()
         # Check if decky-zerotier is installed
-        if is_decky_zerotier_installed():
+        if state == "active" and is_decky_zerotier_installed():
             logging.warning("User attempted to toggle ZeroTier service while decky-zerotier is installed. Showing explanation and offering to disconnect from networks.")
             response = messagebox.askyesno(
                 title="Decky ZeroTier Integration",
@@ -375,11 +380,6 @@ class MainWindow:
             
             return
         
-        # Load settings if not already loaded
-        if not hasattr(self, 'settings'):
-            self.settings = self.load_settings()
-
-        state = self.get_service_status()
         if state == "active":
             manage_service("stop")
             manage_service("disable")
@@ -876,7 +876,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.7"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.8"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
