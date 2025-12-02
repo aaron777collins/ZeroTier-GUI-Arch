@@ -58,6 +58,7 @@ import pwd
 import logging
 import re
 import time
+import tempfile
 from pathlib import Path
 
 # Ensure the log directory exists
@@ -876,7 +877,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.3"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.4"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1625,26 +1626,32 @@ def get_current_zerotier_port():
         int: The current port number, or 9993 if not set
     """
     try:
-        zerotier_backend = get_zerotier_backend_path()
-
-        if not os.path.exists(zerotier_backend) or not os.path.isdir(zerotier_backend):
-            logging.error(f"ZeroTier backend directory does not exist: {zerotier_backend}. Using default port 9993.. but this should be impossible!!")
-            return 9993
-        
-        local_conf_path = os.path.join(zerotier_backend, "zerotier-one.port")
+        local_conf_path = "/var/lib/zerotier-one/local.conf"
         
         # Check if file exists using sudo
         try:
-            run_command(['test', '-f', local_conf_path], use_sudo=True, cdw=zerotier_backend)
+            run_command(['test', '-f', local_conf_path], use_sudo=True)
         except CalledProcessError:
-            # File doesn't exist, create it with default port 9993 using sudo
-            run_command(['sh', '-c', f'echo "9993" > {local_conf_path}'], use_sudo=True, cdw=zerotier_backend)
-            logging.info(f"Created ZeroTier port file with default port 9993")
+            # File doesn't exist, return default port
+            logging.info(f"ZeroTier local.conf does not exist. Using default port 9993")
             return 9993
         
-        # read the port from the file using sudo
-        result = run_command(['cat', local_conf_path], use_sudo=True, cdw=zerotier_backend)
-        return int(result.strip())
+        # Read the JSON config file using sudo
+        result = run_command(['cat', local_conf_path], use_sudo=True)
+        config = json.loads(result.strip())
+        
+        # Extract primaryPort from settings
+        if "settings" in config and "primaryPort" in config["settings"]:
+            port = int(config["settings"]["primaryPort"])
+            logging.debug(f"Found primaryPort in local.conf: {port}")
+            return port
+        
+        # No primaryPort set, return default
+        logging.info(f"No primaryPort set in local.conf. Using default port 9993")
+        return 9993
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to parse local.conf as JSON: {e}. Using default port 9993")
+        return 9993
     except Exception as e:
         logging.error(f"Failed to read current ZeroTier port: {e}")
         return 9993
@@ -1662,41 +1669,71 @@ def modify_zerotier_port(new_port):
     ensure_log_folder_exists()
     
     try:
-        zerotier_backend = get_zerotier_backend_path()
+        local_conf_path = "/var/lib/zerotier-one/local.conf"
         
-        if not os.path.exists(zerotier_backend) or not os.path.isdir(zerotier_backend):
-            logging.error(f"ZeroTier backend directory does not exist: {zerotier_backend}. Using default port 9993.. but this should be impossible!!")
-            return False
-        
-        local_conf_path = os.path.join(zerotier_backend, "zerotier-one.port")
-
-        # Check if file exists using sudo
+        # Ensure the directory exists
         try:
-            run_command(['test', '-f', local_conf_path], use_sudo=True, cdw=zerotier_backend)
-            file_exists = True
+            run_command(['test', '-d', '/var/lib/zerotier-one'], use_sudo=True)
         except CalledProcessError:
+            # Directory doesn't exist, create it
+            run_command(['mkdir', '-p', '/var/lib/zerotier-one'], use_sudo=True)
+            logging.info("Created /var/lib/zerotier-one directory")
+
+        # Check if file exists and read existing config
+        config = {}
+        file_exists = False
+        try:
+            run_command(['test', '-f', local_conf_path], use_sudo=True)
+            file_exists = True
+            # Read existing config
+            result = run_command(['cat', local_conf_path], use_sudo=True)
+            config = json.loads(result.strip())
+        except CalledProcessError:
+            # File doesn't exist, will create new config
             file_exists = False
+            config = {}
+        except json.JSONDecodeError as e:
+            logging.warning(f"Failed to parse existing local.conf as JSON: {e}. Creating new config.")
+            config = {}
 
-        if not file_exists:
-            # create the file with the new port using sudo
-            run_command(['sh', '-c', f'echo "{new_port}" > {local_conf_path}'], use_sudo=True, cdw=zerotier_backend)
-            logging.info(f"Successfully created ZeroTier port file with port {new_port}")
-            return True
+        # Check current port if settings exist
+        old_port = None
+        if file_exists and "settings" in config and "primaryPort" in config.get("settings", {}):
+            old_port = int(config["settings"]["primaryPort"])
+            if old_port == new_port:
+                logging.info(f"ZeroTier port is already set to {new_port}. No change needed.")
+                return True
 
-        # read current port from the file using sudo
-        result = run_command(['cat', local_conf_path], use_sudo=True, cdw=zerotier_backend)
-        current_port = int(result.strip())
-
-        # if the current port is the same as the new port, return True
-        if current_port == new_port:
-            logging.info(f"ZeroTier port is already set to {new_port}. No change needed.")
-            return True
-
-        # if the current port is not the same as the new port, write the new port to the file using sudo
-        run_command(['sh', '-c', f'echo "{new_port}" > {local_conf_path}'], use_sudo=True, cdw=zerotier_backend)
+        # Ensure settings object exists
+        if "settings" not in config:
+            config["settings"] = {}
         
-        logging.info(f"Successfully changed ZeroTier port from {current_port} to {new_port}")
-        return True
+        # Update the port
+        config["settings"]["primaryPort"] = new_port
+        
+        # Write the updated config to a temporary file first, then move it
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as tmp_file:
+            json.dump(config, tmp_file, indent=2)
+            tmp_path = tmp_file.name
+        
+        try:
+            # Copy the temp file to the target location using sudo
+            run_command(['cp', tmp_path, local_conf_path], use_sudo=True)
+            # Set appropriate permissions
+            run_command(['chmod', '644', local_conf_path], use_sudo=True)
+            
+            if file_exists and old_port is not None:
+                logging.info(f"Successfully changed ZeroTier port from {old_port} to {new_port} in local.conf")
+            else:
+                logging.info(f"Successfully created local.conf with port {new_port}")
+            return True
+        finally:
+            # Clean up temp file
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+                
     except Exception as e:
         logging.error(f"Failed to modify ZeroTier port: {e}")
         return False
