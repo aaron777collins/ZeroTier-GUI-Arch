@@ -57,6 +57,7 @@ import os
 import pwd
 import logging
 import re
+import time
 from pathlib import Path
 
 # Ensure the log directory exists
@@ -810,7 +811,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.5"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.6"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1450,15 +1451,57 @@ def reinstall_backend():
 def get_user():
     return pwd.getpwuid(os.getuid())[0]
 
+def get_zerotier_backend_path():
+    """
+    Get the ZeroTier backend installation path (where zerotier-cli binary is located).
+    This is always our backend install location: ~/.zerotier-one
+    
+    Returns:
+        str: Path to the backend installation directory
+    """
+    user = get_user().strip()
+    backend_path = f"/home/{user}/.zerotier-one"
+    return backend_path
+
+def get_zerotier_base_path():
+    """
+    Get the ZeroTier data directory path (where ZeroTier stores its data/config).
+    Checks for decky-zerotier installation first, then falls back to default.
+    This is used with the -D flag to point zerotier-cli at the correct data directory.
+    
+    Returns:
+        str: Path to the ZeroTier data directory
+    Note: This function only returns the path; it does not verify the directory exists.
+    """
+    try:
+        user = get_user().strip()
+        
+        # Check for decky-zerotier installation first
+        decky_zerotier_path = f"/home/{user}/homebrew/settings/decky-zerotier"
+        if os.path.exists(decky_zerotier_path) and os.path.isdir(decky_zerotier_path):
+            logging.info(f"Found decky-zerotier installation at {decky_zerotier_path}")
+            return decky_zerotier_path
+        
+        # Fall back to default location (same as backend)
+        default_path = f"/home/{user}/.zerotier-one"
+        logging.debug(f"Using default ZeroTier data path: {default_path}")
+        return default_path
+    except Exception as e:
+        # Fallback to default if anything goes wrong
+        user = get_user().strip()
+        default_path = f"/home/{user}/.zerotier-one"
+        logging.warning(f"Error in get_zerotier_base_path(): {e}. Using default path: {default_path}")
+        return default_path
+
 def run_command(command, use_sudo=True, cdw=None):
     ensure_log_folder_exists()
     user = get_user().strip()
 
-    cdwPath = f"/home/{user}/.zerotier-one" if cdw is None else cdw
+    cdwPath = get_zerotier_base_path() if cdw is None else cdw
 
     logging.info(f"Running command: {command} in {cdwPath} (sudo: {use_sudo})")
 
-    # Check if /home/<user>/.zerotier-one exists
+    # Check if the working directory exists
     if not os.path.exists(cdwPath):
         logging.error(f"Path {cdwPath} does not exist")
         raise FileNotFoundError(f"Path {cdwPath} does not exist")
@@ -1494,6 +1537,108 @@ def run_command(command, use_sudo=True, cdw=None):
 
     # Strip [sudo] password for <user>: from stdout
     return stdout.decode().replace(f"[sudo] password for {get_user()}: ", "")
+
+def get_current_zerotier_port():
+    """
+    Get the current primary port from ZeroTier's local.conf file.
+    
+    Returns:
+        int: The current port number, or 9993 if not set
+    """
+    try:
+        zerotier_base = get_zerotier_base_path()
+        
+        # Check if the base directory exists
+        if not os.path.exists(zerotier_base):
+            logging.debug(f"ZeroTier base directory does not exist: {zerotier_base}. Using default port 9993.")
+            return 9993
+        
+        local_conf_path = os.path.join(zerotier_base, "local.conf")
+        
+        if os.path.exists(local_conf_path) and os.path.isfile(local_conf_path):
+            with open(local_conf_path, 'r') as f:
+                try:
+                    config = json.load(f)
+                    return config.get("settings", {}).get("primaryPort", 9993)
+                except JSONDecodeError:
+                    logging.warning(f"local.conf exists but is not valid JSON. Using default port 9993.")
+                    return 9993
+        return 9993
+    except Exception as e:
+        logging.error(f"Failed to read current ZeroTier port: {e}")
+        return 9993
+
+def modify_zerotier_port(new_port):
+    """
+    Modify the primary port in ZeroTier's local.conf file.
+    
+    Args:
+        new_port (int): The new port number to set (e.g., 9994)
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    ensure_log_folder_exists()
+    
+    try:
+        zerotier_base = get_zerotier_base_path()
+        
+        # Check if the base directory exists
+        if not os.path.exists(zerotier_base):
+            logging.error(f"Cannot modify ZeroTier port: base directory does not exist: {zerotier_base}")
+            return False
+        
+        # Ensure it's a directory, not a file
+        if not os.path.isdir(zerotier_base):
+            logging.error(f"Cannot modify ZeroTier port: path exists but is not a directory: {zerotier_base}")
+            return False
+        
+        local_conf_path = os.path.join(zerotier_base, "local.conf")
+        
+        current_port = get_current_zerotier_port()
+        
+        # If already set to the target port, no need to change
+        if current_port == new_port:
+            logging.info(f"ZeroTier port is already set to {new_port}. No change needed.")
+            return True
+        
+        logging.info(f"Attempting to modify ZeroTier port from {current_port} to {new_port} in {local_conf_path}")
+        
+        # Read existing config or create new one
+        config = {}
+        if os.path.exists(local_conf_path) and os.path.isfile(local_conf_path):
+            try:
+                with open(local_conf_path, 'r') as f:
+                    try:
+                        config = json.load(f)
+                    except JSONDecodeError:
+                        logging.warning(f"local.conf exists but is not valid JSON. Creating new config.")
+                        config = {}
+            except (IOError, OSError) as e:
+                logging.warning(f"Failed to read existing local.conf: {e}. Creating new config.")
+                config = {}
+        
+        # Ensure settings object exists
+        if "settings" not in config:
+            config["settings"] = {}
+        
+        # Update the port
+        config["settings"]["primaryPort"] = new_port
+        
+        # Write back to file
+        try:
+            with open(local_conf_path, 'w') as f:
+                json.dump(config, f, indent=2)
+        except (IOError, OSError) as e:
+            logging.error(f"Failed to write local.conf: {e}")
+            return False
+        
+        logging.info(f"Successfully changed ZeroTier port from {current_port} to {new_port}")
+        return True
+        
+    except Exception as e:
+        logging.error(f"Failed to modify ZeroTier port: {e}")
+        return False
 
 def disable_duplicate_zerotier():
     # Detect if there's a duplicate zerotier service that is running. If so, ask the user permission to disable it and mention that not disabling it could lead to issues running our ZeroTier service.
@@ -1533,8 +1678,23 @@ def run_zerotier_cli(*args, stderr_to_stdout=False):
     ensure_log_folder_exists()
 
     user = get_user().strip()
-    command = ['sudo', '-S', './zerotier-cli', f"-D/home/{user}/.zerotier-one"] + list(args)
-    logging.debug(f"Initial command: {command}")
+    # Backend path: where zerotier-cli binary is located (always our install)
+    zerotier_backend = get_zerotier_backend_path()
+    # Data path: where ZeroTier data/config is stored (could be decky or regular)
+    zerotier_data = get_zerotier_base_path()
+    
+    # Check if the backend directory exists (where we run zerotier-cli from)
+    if not os.path.exists(zerotier_backend):
+        logging.error(f"Cannot run zerotier-cli: backend directory does not exist: {zerotier_backend}")
+        raise FileNotFoundError(f"ZeroTier backend directory does not exist: {zerotier_backend}")
+    
+    if not os.path.isdir(zerotier_backend):
+        logging.error(f"Cannot run zerotier-cli: backend path exists but is not a directory: {zerotier_backend}")
+        raise FileNotFoundError(f"ZeroTier backend path is not a directory: {zerotier_backend}")
+    
+    # Run zerotier-cli from backend, but point -D at data directory
+    command = ['sudo', '-S', './zerotier-cli', f"-D{zerotier_data}"] + list(args)
+    logging.debug(f"Initial command: {command} (running from {zerotier_backend}, data dir: {zerotier_data})")
     if not DEBUG_MODE:
         command = ['flatpak-spawn', '--host'] + command
     logging.debug(f"Final command: {command}")
@@ -1544,7 +1704,8 @@ def run_zerotier_cli(*args, stderr_to_stdout=False):
         logging.debug(f"The zerotier-one service is set as {serviceEnabled}. Ignoring command.")
         return ""
     stderr = STDOUT if stderr_to_stdout else PIPE
-    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd=f"/home/{user}/.zerotier-one")
+    # Run from backend directory, but use data directory in -D flag
+    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr, cwd=zerotier_backend)
     stdout, stderr = process.communicate(input=(SUDO_PASSWORD + '\n').encode())
     if process.returncode != 0:
         logging.error(f"Command failed with return code {process.returncode}")
@@ -1689,11 +1850,66 @@ def resolve_unknown_error():
         logging.error(f"Failed to log the backend service logs. return code {serviceLogsError.returncode}: {error_output}")
 
     if "inactive" in running or "failed" in running:
-        logging.error("Service status is 'inactive' or 'failed'. Backend did not start properly. Re-installing backend.")
+        # Try changing port before re-installing - try up to 5 ports starting from 9993
+        current_port = get_current_zerotier_port()
+        all_ports = list(range(9993, 10000))
+        
+        # Start from current_port + 1, then wrap around if needed, but limit to 5 ports
+        if current_port in all_ports:
+            start_idx = all_ports.index(current_port) + 1
+            ports_to_try = (all_ports[start_idx:] + all_ports[:start_idx])[:5]
+        else:
+            # If current_port is not in range, start from 9993
+            ports_to_try = all_ports[:5]
+        
+        logging.info(f"Service failed to start. Attempting to try up to 5 ports: {ports_to_try}")
+        
+        for new_port in ports_to_try:
+            logging.info(f"Attempting to change primary port to {new_port}.")
+            port_changed = modify_zerotier_port(new_port)
+            
+            if not port_changed:
+                logging.warning(f"Failed to change port to {new_port}. Trying next port.")
+                continue
+            
+            logging.info(f"Port changed successfully to {new_port}. Stopping service and attempting to restart.")
+            manage_service("stop")
+            manage_service("start")
+            
+            # Wait a moment for service to start
+            time.sleep(2)
+            
+            # Check status again after port change
+            running = run_command(["systemctl", "--user", "is-active", "zerotier-one"], use_sudo=False, cdw=f"/home/{user}")
+            running = running.strip()
+            logging.info(f"Service status after port change to {new_port}: {running}")
+            
+            if "inactive" in running or "failed" in running:
+                logging.warning(f"Service still failed to start with port {new_port}. Trying next port.")
+                continue
+            
+            # Service appears to be running, verify it's actually working
+            try:
+                run_zerotier_cli("listnetworks")
+                logging.info(f"Service started successfully with port {new_port}. ZeroTier is working.")
+                messagebox.showinfo(
+                    title="Success",
+                    icon="info",
+                    message=f"Successfully started the ZeroTier backend by changing the primary port to {new_port}!",
+                )
+                return
+            except CalledProcessError as error:
+                error_output = error.output.decode().strip() if error.output else ""
+                logging.warning(f"Service started with port {new_port} but 'listnetworks' failed with return code {error.returncode}: {error_output}. Trying next port.")
+                continue
+        
+        # If we get here, all ports failed
+        ports_list_str = ", ".join(map(str, ports_to_try))
+        logging.error(f"Service failed to start after trying {len(ports_to_try)} ports: {ports_list_str}. Proceeding with re-installation.")
         messagebox.showinfo(
             title="Error",
             icon="error",
-            message="Failed to start the ZeroTier backend. To solve the issue, the backend will be re-installed...",
+            message=f"Failed to start the ZeroTier backend even after trying {len(ports_to_try)} different ports ({ports_list_str}). The backend will be re-installed...",
         )
         reinstall_backend()
     else:
@@ -1714,11 +1930,57 @@ def resolve_unknown_error():
                 message="Successfully started the ZeroTier backend and confirmed it works!",
             )
         else:
-            logging.error("Unknown error persists. The backend service did not report 'inactive' or 'failed' but commands still fail. Re-installing backend.")
+            # Try port change before re-installing - try up to 5 ports starting from 9993
+            current_port = get_current_zerotier_port()
+            all_ports = list(range(9993, 10000))
+            
+            # Start from current_port + 1, then wrap around if needed, but limit to 5 ports
+            if current_port in all_ports:
+                start_idx = all_ports.index(current_port) + 1
+                ports_to_try = (all_ports[start_idx:] + all_ports[:start_idx])[:5]
+            else:
+                # If current_port is not in range, start from 9993
+                ports_to_try = all_ports[:5]
+            
+            logging.info(f"Service appears running but commands fail. Attempting to try up to 5 ports: {ports_to_try}")
+            
+            for new_port in ports_to_try:
+                logging.info(f"Attempting to change primary port to {new_port}.")
+                port_changed = modify_zerotier_port(new_port)
+                
+                if not port_changed:
+                    logging.warning(f"Failed to change port to {new_port}. Trying next port.")
+                    continue
+                
+                logging.info(f"Port changed successfully to {new_port}. Restarting service.")
+                manage_service("stop")
+                manage_service("start")
+                
+                # Wait a moment for service to start
+                time.sleep(2)
+                
+                # Try again
+                try:
+                    run_zerotier_cli("listnetworks")
+                    logging.info(f"Service working after port change to {new_port}.")
+                    messagebox.showinfo(
+                        title="Success",
+                        icon="info",
+                        message=f"Successfully fixed the ZeroTier backend by changing the primary port to {new_port}!",
+                    )
+                    return
+                except CalledProcessError as error:
+                    error_output = error.output.decode().strip() if error.output else ""
+                    logging.warning(f"Still failing with port {new_port} (return code {error.returncode}: {error_output}). Trying next port.")
+                    continue
+            
+            # If we get here, all ports failed
+            ports_list_str = ", ".join(map(str, ports_to_try))
+            logging.error(f"Unknown error persists. Tried {len(ports_to_try)} ports ({ports_list_str}) but commands still fail. Re-installing backend.")
             messagebox.showinfo(
                 title="Error",
                 icon="error",
-                message="An unknown error is preventing zerotier commands from executing. The only solution left is to attempt re-installing the backend.",
+                message=f"An unknown error is preventing zerotier commands from executing even after trying {len(ports_to_try)} different ports ({ports_list_str}). The only solution left is to attempt re-installing the backend.",
             )
             reinstall_backend()
 
