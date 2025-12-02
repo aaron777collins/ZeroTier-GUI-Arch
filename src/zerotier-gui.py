@@ -876,7 +876,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.0"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.1"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1840,6 +1840,18 @@ def check_for_errors():
         try:
             run_zerotier_cli("listnetworks")
             logging.info("ZeroTier 'listnetworks' command succeeded; no errors detected.")
+            find_problem()
+            if find_problem() != "":
+                logging.error(f"ZeroTier 'listnetworks' command succeeded but problem found with service: {find_problem()}. Attempting to resolve the issue...")
+                messagebox.showinfo(
+                    title="Error",
+                    icon="error",
+                    message=f"ZeroTier 'listnetworks' command succeeded but problem found with service: {find_problem()}. Attempting to resolve the issue...",
+                )
+                resolve_unknown_error()
+                continue
+            logging.info("No problems detected.")
+            return
         except CalledProcessError as error:
             error_output = error.output.decode().strip() if error.output else ""
             logging.error(f"'listnetworks' failed with return code {error.returncode}: {error_output}")
@@ -1975,7 +1987,10 @@ def resolve_unknown_error():
             # Service appears to be running, verify it's actually working
             try:
                 run_zerotier_cli("listnetworks")
-                logging.info(f"Service started successfully with port {new_port}. ZeroTier is working.")
+                if find_problem() != "":
+                    logging.warning(f"Able to listnetworks but problem found with service status: {find_problem()}. Attempting next port.")
+                    continue
+                logging.info(f"Service started successfully with port {new_port}. ZeroTier backend is working.")
                 messagebox.showinfo(
                     title="Success",
                     icon="info",
