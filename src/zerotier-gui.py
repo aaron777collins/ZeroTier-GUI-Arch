@@ -876,7 +876,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.2"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.9.3"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1633,14 +1633,18 @@ def get_current_zerotier_port():
         
         local_conf_path = os.path.join(zerotier_backend, "zerotier-one.port")
         
-        if not os.path.exists(local_conf_path) or not os.path.isfile(local_conf_path):
-            # create the file with the default port 9993
-            with open(local_conf_path, 'w') as f:
-                f.write("9993")
+        # Check if file exists using sudo
+        try:
+            run_command(['test', '-f', local_conf_path], use_sudo=True, cdw=zerotier_backend)
+        except CalledProcessError:
+            # File doesn't exist, create it with default port 9993 using sudo
+            run_command(['sh', '-c', f'echo "9993" > {local_conf_path}'], use_sudo=True, cdw=zerotier_backend)
+            logging.info(f"Created ZeroTier port file with default port 9993")
+            return 9993
         
-        # read the port from the file
-        with open(local_conf_path, 'r') as f:
-            return int(f.read().strip())
+        # read the port from the file using sudo
+        result = run_command(['cat', local_conf_path], use_sudo=True, cdw=zerotier_backend)
+        return int(result.strip())
     except Exception as e:
         logging.error(f"Failed to read current ZeroTier port: {e}")
         return 9993
@@ -1666,27 +1670,30 @@ def modify_zerotier_port(new_port):
         
         local_conf_path = os.path.join(zerotier_backend, "zerotier-one.port")
 
-        if not os.path.exists(local_conf_path) or not os.path.isfile(local_conf_path):
-            # create the file with the default port 9993
-            with open(local_conf_path, 'w') as f:
-                # write the port to the file
-                f.write(str(new_port))
-                logging.info(f"Successfully created ZeroTier port file with port {new_port}")
-                return True
+        # Check if file exists using sudo
+        try:
+            run_command(['test', '-f', local_conf_path], use_sudo=True, cdw=zerotier_backend)
+            file_exists = True
+        except CalledProcessError:
+            file_exists = False
 
-        # read current port from the file
-        with open(local_conf_path, 'r') as f:
-            current_port = int(f.read().strip())
+        if not file_exists:
+            # create the file with the new port using sudo
+            run_command(['sh', '-c', f'echo "{new_port}" > {local_conf_path}'], use_sudo=True, cdw=zerotier_backend)
+            logging.info(f"Successfully created ZeroTier port file with port {new_port}")
+            return True
+
+        # read current port from the file using sudo
+        result = run_command(['cat', local_conf_path], use_sudo=True, cdw=zerotier_backend)
+        current_port = int(result.strip())
 
         # if the current port is the same as the new port, return True
         if current_port == new_port:
             logging.info(f"ZeroTier port is already set to {new_port}. No change needed.")
             return True
 
-        # if the current port is not the same as the new port, write the new port to the file
-        # write the port to the file
-        with open(local_conf_path, 'w') as f:
-            f.write(str(new_port))
+        # if the current port is not the same as the new port, write the new port to the file using sudo
+        run_command(['sh', '-c', f'echo "{new_port}" > {local_conf_path}'], use_sudo=True, cdw=zerotier_backend)
         
         logging.info(f"Successfully changed ZeroTier port from {current_port} to {new_port}")
         return True
