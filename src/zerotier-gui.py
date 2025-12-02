@@ -310,6 +310,71 @@ class MainWindow:
             json.dump(self.settings, f, indent=4)
 
     def toggle_service(self):
+        # Check if decky-zerotier is installed
+        if is_decky_zerotier_installed():
+            logging.warning("User attempted to toggle ZeroTier service while decky-zerotier is installed. Showing explanation and offering to disconnect from networks.")
+            response = messagebox.askyesno(
+                title="Decky ZeroTier Integration",
+                message="Compatibility mode is ON to integrate with Decky ZeroTier, some featurs are disabled.\n\n"
+                        "Toggling ZeroTier ON/OFF entirely will not work and is disabled.\n\n"
+                        "Would you like to disconnect from all ZeroTier networks instead? \n(This will not toggle the service, but it will ensure you are not connected to any networks)",
+                icon="warning"
+            )
+            
+            if response:
+                # User wants to disconnect from all networks
+                try:
+                    networks = self.get_networks_info()
+                    disconnected_count = 0
+                    failed_count = 0
+                    
+                    for network in networks:
+                        # Network objects can have either "id" or "nwid" field
+                        network_id = network.get("id") or network.get("nwid")
+                        network_name = network.get("name", "Unknown") or "Unknown"
+                        
+                        if not network_id:
+                            logging.warning(f"Skipping network with no ID: {network}")
+                            continue
+                        
+                        try:
+                            logging.info(f"Leaving network: {network_name} (ID: {network_id})")
+                            run_zerotier_cli("leave", network_id)
+                            disconnected_count += 1
+                        except CalledProcessError as e:
+                            logging.error(f"Failed to leave network {network_name} (ID: {network_id}): {e}")
+                            failed_count += 1
+                        except Exception as e:
+                            logging.error(f"Unexpected error leaving network {network_name} (ID: {network_id}): {e}")
+                            failed_count += 1
+                    
+                    # Refresh the network list
+                    self.refresh_networks()
+                    
+                    # Show result message
+                    if failed_count == 0:
+                        messagebox.showinfo(
+                            title="Disconnected",
+                            message=f"Successfully disconnected from {disconnected_count} network(s).",
+                            icon="info"
+                        )
+                    else:
+                        messagebox.showwarning(
+                            title="Partial Success",
+                            message=f"Disconnected from {disconnected_count} network(s).\n"
+                                    f"Failed to disconnect from {failed_count} network(s).",
+                            icon="warning"
+                        )
+                except Exception as e:
+                    logging.error(f"Error getting networks or disconnecting: {e}")
+                    messagebox.showerror(
+                        title="Error",
+                        message=f"An error occurred while trying to disconnect from networks: {e}",
+                        icon="error"
+                    )
+            
+            return
+        
         # Load settings if not already loaded
         if not hasattr(self, 'settings'):
             self.settings = self.load_settings()
@@ -811,7 +876,7 @@ class MainWindow:
         ztGuiVersionLabel = tk.Label(
             middleFrame,
             font="Monospace",
-            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.6"),
+            text="{:40s}{}".format("ZeroTier GUI (Upgraded) Version:", "2.8.7"),
             bg=BACKGROUND,
             fg=FOREGROUND,
         )
@@ -1462,6 +1527,20 @@ def get_zerotier_backend_path():
     user = get_user().strip()
     backend_path = f"/home/{user}/.zerotier-one"
     return backend_path
+
+def is_decky_zerotier_installed():
+    """
+    Check if decky-zerotier is installed.
+    
+    Returns:
+        bool: True if decky-zerotier installation is detected, False otherwise
+    """
+    try:
+        user = get_user().strip()
+        decky_zerotier_path = f"/home/{user}/homebrew/settings/decky-zerotier"
+        return os.path.exists(decky_zerotier_path) and os.path.isdir(decky_zerotier_path)
+    except Exception:
+        return False
 
 def get_zerotier_base_path():
     """
